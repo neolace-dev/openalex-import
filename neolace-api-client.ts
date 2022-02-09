@@ -5,6 +5,8 @@ import * as api from "../../neolace-app/neolace-api/src/index.ts";
 
 export { api };
 
+export const VNID = api.VNID;
+
 let _apiClientPromise: Promise<api.NeolaceApiClient> | undefined = undefined;
 
 // deno-lint-ignore require-await

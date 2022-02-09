@@ -1,7 +1,7 @@
 #!/usr/bin/env deno run --import-map=import_map.json --allow-net --allow-read --allow-env --unstable --no-check
 
-import { VNID } from "../../neolace-app/backend/neolace/deps/vertex-framework.ts";
-import { api, getApiClient } from "./neolace-api-client.ts";
+import { api, getApiClient, VNID } from "./neolace-api-client.ts";
+
 const client = await getApiClient();
 await client.eraseAllEntriesDangerously({confirm: "danger"});
 
@@ -17,8 +17,7 @@ for (let page = 1; page < 2; page++) {
             console.log(`entry ${id} already exists.`)
             continue
 
-        }
-        catch (error) {
+        } catch (error) {
             if (error instanceof api.NotFound) {
                 //  this is good we have to create the entry.
             } else {
