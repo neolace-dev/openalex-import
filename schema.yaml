@@ -1,0 +1,88 @@
+entryTypes:
+  - id: _ET_CONCEPT
+    name: Concept
+    description: An OpenAlex Concept
+    friendlyIdPrefix: C-
+    enabledFeatures: {}
+properties:
+  - id: _PROP_WIKIDATA
+    name: Wikidata
+    descriptionMD: The Wikidata ID for this concept. 
+    type: VALUE
+    mode: REC
+    importance: 3
+    appliesTo:
+      - entryType: _ET_CONCEPT
+  - id: _PROP_LEVEL
+    name: Level
+    descriptionMD: The level in the concept tree where this concept lives.
+    type: VALUE
+    mode: REC
+    importance: 2
+    appliesTo:
+      - entryType: _ET_CONCEPT
+  - id: _PROP_WORKS_COUNT
+    name: Works Count
+    descriptionMD: The number of works tagged with this concept.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_CONCEPT
+  - id: _PROP_MAG_ID
+    name: MAG ID
+    descriptionMD: Microsoft Academic Graph ID.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_CONCEPT
+  - id: _PROP_WIKIPEDIA_ID
+    name: Wikipedia ID
+    descriptionMD: The concept's Wikipedia page URL.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_CONCEPT
+  - id: _PROP_UPDATED_DATE
+    name: Updated date
+    descriptionMD: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_CONCEPT
+  - id: _PROP_ANCESTORS
+    name: Ancestors
+    descriptionMD: List of concepts that this concept descends from.
+    type: IS_A
+    mode: REC
+    importance: 0
+    appliesTo:
+      - entryType: _ET_CONCEPT
+    valueConstraint: x.type() = entryType("_ET_CONCEPT")
+  - id: _PROP_RELATED_CONCEPTS
+    name: Related concepts
+    descriptionMD: Concepts that are similar to this one.
+    type: RELATES_TO
+    mode: REC
+    importance: 1
+    appliesTo:
+      - entryType: _ET_CONCEPT
+    valueConstraint: x.type() = entryType("_ET_CONCEPT")
+
+idMap:
+  comment: >-
+    if you edit one of the IDs above, you should edit it below here too. You do
+    not need to add IDs here for new entries.
+  map: {}
+
+
+
+
+
+
+
+
+
