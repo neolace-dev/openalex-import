@@ -2,7 +2,7 @@ entryTypes:
   - id: _ET_CONCEPT
     name: Concept
     description: An OpenAlex Concept
-    friendlyIdPrefix: C-
+    friendlyIdPrefix: C
     enabledFeatures: {}
 properties:
   - id: _PROP_WIKIDATA
@@ -76,7 +76,16 @@ idMap:
   comment: >-
     if you edit one of the IDs above, you should edit it below here too. You do
     not need to add IDs here for new entries.
-  map: {}
+  map:
+    _ET_CONCEPT: _vj4bFX3CVAGMis4aiL4AJ
+    _PROP_WIKIDATA: _63mbf1PWCiYQVs53ef3lcp
+    _PROP_LEVEL: _3AyM6hRQL23PhhHZrboCYr
+    _PROP_WORKS_COUNT: _4OujpOZawdTunrjtSQrPcb
+    _PROP_MAG_ID: _1i2GXNofq5YEgaA3R9F4KN
+    _PROP_WIKIPEDIA_ID: _468JDObMgV93qhEfHSAWnr
+    _PROP_UPDATED_DATE: _1M7JXgQKUfgSageiKdR82T
+    _PROP_ANCESTORS: _1uwLIPU2RI457BkrPs3rgM
+    _PROP_RELATED_CONCEPTS: _4wv8wdeT0B33FTQPBcAszM
 
 
 
