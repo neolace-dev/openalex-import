@@ -151,7 +151,7 @@ for (let page = 1; page < (10_000/count_per_page); page++) {
             description: "",
             edits,
         });
-        client.acceptDraft(draftId);
+        await client.acceptDraft(draftId);
         
     }
 
