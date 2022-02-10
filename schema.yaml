@@ -13,6 +13,7 @@ properties:
     importance: 3
     appliesTo:
       - entryType: _ET_CONCEPT
+    displayAs: "[{value}](https://www.wikidata.org/wiki/{value})"
   - id: _PROP_LEVEL
     name: Level
     descriptionMD: The level in the concept tree where this concept lives.
@@ -45,6 +46,7 @@ properties:
     importance: 5
     appliesTo:
       - entryType: _ET_CONCEPT
+    displayAs: "[{value}](https://en.wikipedia.org/wiki/{value})"
   - id: _PROP_UPDATED_DATE
     name: Updated date
     descriptionMD: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
@@ -62,6 +64,17 @@ properties:
     appliesTo:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
+  - id: _PROP_DESCENDANTS
+    name: Descendants
+    descriptionMD: List of concepts that this concept is an ancestor of.
+    type: RELATES_TO
+    mode: AUTO
+    importance: 0
+    appliesTo:
+      - entryType: _ET_CONCEPT
+    valueConstraint: x.type() = entryType("_ET_CONCEPT")
+    default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
+    
   - id: _PROP_RELATED_CONCEPTS
     name: Related concepts
     descriptionMD: Concepts that are similar to this one.
@@ -86,7 +99,7 @@ idMap:
     _PROP_UPDATED_DATE: _1M7JXgQKUfgSageiKdR82T
     _PROP_ANCESTORS: _1uwLIPU2RI457BkrPs3rgM
     _PROP_RELATED_CONCEPTS: _4wv8wdeT0B33FTQPBcAszM
-
+    _PROP_DESCENDANTS: _5bqPhtxKnanIkfrOUuxq4M
 
 
 
