@@ -40,6 +40,8 @@ for (let level = 0 ; level <= 5; level++) {
     const curr_string = new TextDecoder().decode(curr_file);
     const lines = curr_string.split('\n');
 
+    let pendingPromises: Promise<void>[] = [];
+
     for (const concept of lines) {
       if (concept.trim() == '') {
         continue;
@@ -47,9 +49,14 @@ for (let level = 0 ; level <= 5; level++) {
       const json_concept = JSON.parse(concept);
       // console.log(json_concept);
       if (json_concept.level == level) {
-        await importConceptToTheDatabase(json_concept);
+        pendingPromises.push(importConceptToTheDatabase(json_concept));
+      }
+      if (pendingPromises.length > 5) {
+        await Promise.all(pendingPromises);
+        pendingPromises = [];
       }
     }
+    await Promise.all(pendingPromises);
   }
 }
 
