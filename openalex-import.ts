@@ -14,49 +14,56 @@ const s3client = new S3Client({
 });
 
 
-const all_files: string[] = [];
-
-for await (const obj of s3client.listObjects({ prefix: "data/concepts/" })) {
-  if (obj.key.endsWith('manifest')) {
-    continue;
+async function download_things(thing_type: string) {
+  for await (const obj of s3client.listObjects({ prefix: `data/${thing_type}/` })) {
+    if (obj.key.endsWith('manifest')) {
+      continue;
+    }
+    const local_path = obj.key;
+    Deno.mkdirSync(dirname(local_path), {recursive: true});
+    if (exist(local_path)) {
+      continue;
+    }
+    console.log(`Downloading ${local_path}`);
+    const curr_obj = await s3client.getObject(obj.key);
+    await Deno.writeFile(local_path, new Uint8Array(await curr_obj.arrayBuffer()));
   }
-  const local_path = obj.key;
-  all_files.push(local_path);
-  Deno.mkdirSync(dirname(local_path), {recursive: true});
-  if (exist(local_path)) {
-    continue;
-  }
-  console.log(`Downloading ${local_path}`);
-  const curr_obj = await s3client.getObject(obj.key);
-  await Deno.writeFile(local_path, new Uint8Array(await curr_obj.arrayBuffer()));
 }
 
-console.log(`There are a total of ${all_files.length}.`)
-for (let level = 0 ; level <= 5; level++) {
-  for (const path of all_files) {
-    console.log(`Processing level ${level} entries in file at path ${path}`);
-    const curr_obj = Deno.readFileSync(path);
-    const curr_file = gunzip(curr_obj);
-    const curr_string = new TextDecoder().decode(curr_file);
-    const lines = curr_string.split('\n');
+async function import_concepts() {
+  const all_dates = Array.from(Deno.readDirSync('data/concepts')).filter((e) => e.name.startsWith('updated_date')).map((e) => e.name);
+  const all_files: string[] = [];
+  all_dates.forEach((date) => {
+    all_files.push(...Array.from(Deno.readDirSync(`data/concepts/${date}`)).filter((e) => e.name.endsWith('.gz')).map((e) => `data/concepts/${date}/${e.name}`));
+  });
 
-    let pendingPromises: Promise<void>[] = [];
-
-    for (const concept of lines) {
-      if (concept.trim() == '') {
-        continue;
+  console.log(`There are a total of ${all_files.length}.`)
+  for (let level = 0 ; level <= 5; level++) {
+    for (const path of all_files) {
+      console.log(`Processing level ${level} entries in file at path ${path}`);
+      const curr_obj = Deno.readFileSync(path);
+      const curr_file = gunzip(curr_obj);
+      const curr_string = new TextDecoder().decode(curr_file);
+      const lines = curr_string.split('\n');
+  
+      let pendingPromises: Promise<void>[] = [];
+  
+      for (const concept of lines) {
+        if (concept.trim() == '') {
+          continue;
+        }
+        const json_concept = JSON.parse(concept);
+        // console.log(json_concept);
+        if (json_concept.level == level) {
+          pendingPromises.push(importConceptToTheDatabase(json_concept));
+        }
+        if (pendingPromises.length > 5) {
+          await Promise.all(pendingPromises);
+          pendingPromises = [];
+        }
       }
-      const json_concept = JSON.parse(concept);
-      // console.log(json_concept);
-      if (json_concept.level == level) {
-        pendingPromises.push(importConceptToTheDatabase(json_concept));
-      }
-      if (pendingPromises.length > 5) {
-        await Promise.all(pendingPromises);
-        pendingPromises = [];
-      }
+      await Promise.all(pendingPromises);
     }
-    await Promise.all(pendingPromises);
   }
 }
 
