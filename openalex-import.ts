@@ -37,11 +37,13 @@ async function import_concepts() {
     all_files.push(...Array.from(Deno.readDirSync(`data/concepts/${date}`)).filter((e) => e.name.endsWith('.gz')).map((e) => `data/concepts/${date}/${e.name}`));
   });
 
-  console.log(`There are a total of ${all_files.length}.`)
-  for (let level = 0 ; level <= 5; level++) {
+  console.log(`There are a total of ${all_files.length}.`);
+  console.time("overall");
+  for (let level = 0 ; level <= 2; level++) {
+    console.time(`level ${level}`);
     for (const path of all_files) {
       console.log(`Processing level ${level} entries in file at path ${path}`);
-      const curr_obj = Deno.readFileSync(path);
+      const curr_obj = await Deno.readFile(path);
       const curr_file = gunzip(curr_obj);
       const curr_string = new TextDecoder().decode(curr_file);
       const lines = curr_string.split('\n');
@@ -64,7 +66,9 @@ async function import_concepts() {
       }
       await Promise.all(pendingPromises);
     }
+    console.timeEnd(`level ${level}`);
   }
+  console.timeEnd("overall");
 }
 
 function exist(path: string) {
@@ -75,3 +79,6 @@ function exist(path: string) {
     return false;
   }
 }
+
+// await download_things('institutions')
+await import_concepts();
