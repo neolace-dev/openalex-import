@@ -10,6 +10,7 @@ import { graph } from "neolace/core/graph.ts";
 import { CreateUser, User } from "neolace/core/User.ts";
 import { CreateSite, Site, UpdateSite } from "neolace/core/Site.ts";
 import { siteData } from "./site.ts";
+import { shutdown } from "neolace/app/shutdown.ts";
 
 // Now create the OpenAlex example content too:
 
@@ -39,3 +40,4 @@ const {id: siteId} = await graph.pullOne(Site, s => s.id, {key: "site-openalex"}
 });
 
 await graph.runAsSystem(UpdateSite({key: siteId, ...siteData}));
+await shutdown();
