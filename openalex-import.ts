@@ -2,7 +2,7 @@
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
 import { dirname } from "https://deno.land/std@0.125.0/path/mod.ts";
 import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
-import { importConceptToTheDatabase } from "./concept-import-improved.ts"
+import { importConceptToTheDatabase } from "./concept-import.ts"
 
 const s3client = new S3Client({
   endPoint: "s3.amazonaws.com",
