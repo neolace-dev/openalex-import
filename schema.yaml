@@ -4,6 +4,11 @@ entryTypes:
     description: An OpenAlex Concept
     friendlyIdPrefix: C
     enabledFeatures: {}
+  - id: _ET_INSTITUTION
+    name: Institution
+    description: An OpenAlex Institution
+    friendlyIdPrefix: I
+    enabledFeatures: {}
 properties:
   - id: _PROP_WIKIDATA
     name: Wikidata
@@ -13,6 +18,7 @@ properties:
     importance: 3
     appliesTo:
       - entryType: _ET_CONCEPT
+      - entryType: _ET_INSTITUTION
     displayAs: "[{value}](https://www.wikidata.org/wiki/{value})"
   - id: _PROP_LEVEL
     name: Level
@@ -30,6 +36,7 @@ properties:
     importance: 5
     appliesTo:
       - entryType: _ET_CONCEPT
+      - entryType: _ET_INSTITUTION
   - id: _PROP_MAG_ID
     name: MAG ID
     descriptionMD: Microsoft Academic Graph ID.
@@ -37,6 +44,7 @@ properties:
     mode: REC
     importance: 5
     appliesTo:
+      - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
   - id: _PROP_WIKIPEDIA_ID
     name: Wikipedia ID
@@ -45,6 +53,7 @@ properties:
     mode: REC
     importance: 5
     appliesTo:
+      - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
     displayAs: "[{value}](https://en.wikipedia.org/wiki/{value})"
   - id: _PROP_UPDATED_DATE
@@ -54,6 +63,7 @@ properties:
     mode: REC
     importance: 5
     appliesTo:
+      - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
   - id: _PROP_ANCESTORS
     name: Ancestors
@@ -85,12 +95,45 @@ properties:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
 
+  - id: _PROP_PARENT_INSTITUTIONS
+    name: Parents
+    descriptionMD: List of parent institutions.
+    type: RELATES_TO
+    mode: REC
+    importance: 0
+    appliesTo:
+      - entryType: _ET_INSTITUTION
+    valueConstraint: x.type() = entryType("_ET_INSTITUTION")
+    
+  - id: _PROP_CHILD_INSTITUTIONS
+    name: Child institutions
+    descriptionMD: List of child institutions.
+    type: RELATES_TO
+    mode: AUTO
+    importance: 0
+    appliesTo:
+      - entryType: _ET_INSTITUTION
+    valueConstraint: x.type() = entryType("_ET_INSTITUTION")
+    default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
+
+  - id: _PROP_RELATED_INSTITUTIONS
+    name: Related institutions
+    descriptionMD: List of related institutions.
+    type: RELATES_TO
+    mode: REC
+    importance: 0
+    appliesTo:
+      - entryType: _ET_INSTITUTION
+    valueConstraint: x.type() = entryType("_ET_INSTITUTION")
+  
+
 idMap:
   comment: >-
     if you edit one of the IDs above, you should edit it below here too. You do
     not need to add IDs here for new entries.
   map:
     _ET_CONCEPT: _vj4bFX3CVAGMis4aiL4AJ
+    _ET_INSTITUTION: _6IBiJrvrPmEDXVCpdphja2
     _PROP_WIKIDATA: _63mbf1PWCiYQVs53ef3lcp
     _PROP_LEVEL: _3AyM6hRQL23PhhHZrboCYr
     _PROP_WORKS_COUNT: _4OujpOZawdTunrjtSQrPcb
@@ -100,3 +143,7 @@ idMap:
     _PROP_ANCESTORS: _1uwLIPU2RI457BkrPs3rgM
     _PROP_RELATED_CONCEPTS: _4wv8wdeT0B33FTQPBcAszM
     _PROP_DESCENDANTS: _5bqPhtxKnanIkfrOUuxq4M
+    _PROP_PARENT_INSTITUTIONS: _2WcngIq4qAP8jYL0W1o7iK
+    _PROP_CHILD_INSTITUTIONS: _47ihemw9K882NvnTGklODY
+    _PROP_RELATED_INSTITUTIONS: _2tGs933dsiNrejnlX8C1cS
+    
