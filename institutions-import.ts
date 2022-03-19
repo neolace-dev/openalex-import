@@ -70,32 +70,34 @@ export interface Institution {
 export async function importInstitutionToTheDatabase(institution: Institution) {
     const client = await getApiClient();
     const id = institution.id.split("/").pop() as string;
+
+    let edits: api.AnyContentEdit[] = []
+    let neolaceId
+
     try {
-      await client.getEntry(id);
+      const entry = await client.getEntry(id);
       console.log(`   entry ${id} already exists.`);
-      return;
+      neolaceId = entry.id;
     } catch (error) {
       if (error instanceof api.NotFound) {
-        //  this is good we have to create the entry.
+        //  create a new entry
+        neolaceId = VNID();
+        edits = [
+          {
+            code: api.CreateEntry.code,
+            data: {
+              id: neolaceId,
+              friendlyId: id,
+              name: institution.display_name,
+              type: VNID("_6IBiJrvrPmEDXVCpdphja2"), 
+              description: "",
+            },
+          },
+        ];
       } else {
         throw error;
       }
     }
-
-    //  create a new entry
-    const neolaceId = VNID();
-    const edits: api.AnyContentEdit[] = [
-      {
-        code: api.CreateEntry.code,
-        data: {
-          id: neolaceId,
-          friendlyId: id,
-          name: institution.display_name,
-          type: VNID("_6IBiJrvrPmEDXVCpdphja2"), 
-          description: "",
-        },
-      },
-    ];
 
     //  set the wikidata id
     if (institution.ids.wikidata) {
