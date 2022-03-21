@@ -176,8 +176,8 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
       let entry_vnid;
 
       try {
+        //  TODO check if the relationship already exists
         entry_vnid = (await client.getEntry(ass_inst_id)).id;
-
       } catch (error) {
         if (error instanceof api.NotFound) {
             //  create a new entry

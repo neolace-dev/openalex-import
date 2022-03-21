@@ -31,58 +31,21 @@ async function download_things(thing_type: string) {
   }
 }
 
-async function import_concepts(max_level: number) {
-  const all_dates = Array.from(Deno.readDirSync('data/concepts')).filter((e) => e.name.startsWith('updated_date')).map((e) => e.name);
-  const all_files: string[] = [];
-  all_dates.forEach((date) => {
-    all_files.push(...Array.from(Deno.readDirSync(`data/concepts/${date}`)).filter((e) => e.name.endsWith('.gz')).map((e) => `data/concepts/${date}/${e.name}`));
-  });
-
-  console.log(`There are a total of ${all_files.length}.`);
-  console.time("overall");
-  for (let curr_level = 0 ; curr_level <= max_level; curr_level++) {
-    console.time(`level ${curr_level}`);
-    for (const path of all_files) {
-      console.log(`Processing level ${curr_level} entries in file at path ${path}`);
-      const curr_obj = await Deno.readFile(path);
-      const curr_file = gunzip(curr_obj);
-      const curr_string = new TextDecoder().decode(curr_file);
-      const lines = curr_string.split('\n');
-  
-      let pendingPromises: Promise<void>[] = [];
-  
-      for (const concept of lines) {
-        if (concept.trim() == '') {
-          continue;
-        }
-        const json_concept = JSON.parse(concept);
-        // console.log(json_concept);
-        if (json_concept.level == curr_level) {
-          pendingPromises.push(importConceptToTheDatabase(json_concept));
-        }
-        if (pendingPromises.length > 5) {
-          await Promise.all(pendingPromises);
-          pendingPromises = [];
-        }
-      }
-      await Promise.all(pendingPromises);
-    }
-    console.timeEnd(`level ${curr_level}`);
-  }
-  console.timeEnd("overall");
-}
-
-async function import_insitutions_by_country(country_code: string) {
+async function import_entities(
+  entity_string: string, 
+  entity_import: (json_object: any) => Promise<void>, 
+  checkCriterion: (json_object: Record<string, unknown>) => boolean
+) {
   const all_dates = Array.from(
-    Deno.readDirSync('data/institutions')).filter(
+    Deno.readDirSync(`data/${entity_string}`)).filter(
       (e) => e.name.startsWith('updated_date')
     ).map((e) => e.name);
 
   const all_files: string[] = [];
   all_dates.forEach((date) => {
     all_files.push(
-      ...Array.from(Deno.readDirSync(`data/institutions/${date}`)).filter(
-        (e) => e.name.endsWith('.gz')).map((e) => `data/institutions/${date}/${e.name}`
+      ...Array.from(Deno.readDirSync(`data/${entity_string}/${date}`)).filter(
+        (e) => e.name.endsWith('.gz')).map((e) => `data/${entity_string}/${date}/${e.name}`
       ));
   });
 
@@ -97,26 +60,24 @@ async function import_insitutions_by_country(country_code: string) {
 
     let pendingPromises: Promise<void>[] = [];
 
-    for (const institutions of lines) {
-      if (institutions.trim() == '') {
+    for (const entity of lines) {
+      if (entity.trim() == '') {
         continue;
       }
-      const json_concept = JSON.parse(institutions);
+      const json_entity = JSON.parse(entity);
       // console.log(json_concept);
-      if (json_concept.country_code == country_code) {
-        pendingPromises.push(importInstitutionToTheDatabase(json_concept));
+      if (checkCriterion(json_entity)) {
+        pendingPromises.push(entity_import(json_entity));
       }
       if (pendingPromises.length > 5) {
         await Promise.all(pendingPromises);
         pendingPromises = [];
       }
-      await Promise.all(pendingPromises);
     }
+    await Promise.all(pendingPromises);
   }
   console.timeEnd("overall");
-
 }
-
 
 function exist(path: string) {
   try {
@@ -129,6 +90,33 @@ function exist(path: string) {
 
 // await download_things('concepts')
 // await download_things('institutions')
+// const maxLevel = 2;
 
-// await import_concepts(1);
-import_insitutions_by_country("CA")
+// for (let level = 0; level < maxLevel; level++) {
+//   await import_entities(
+//     "concepts",
+//     importConceptToTheDatabase,
+//     (concept) => {
+//       return concept.level == level;
+//     }
+//   );
+// }
+
+const country = "CA";
+await import_entities(
+  "institutions",
+  importInstitutionToTheDatabase,
+  (institution) => {
+    return institution.country_code == country;
+  }
+)
+
+// TODO authors by last known institution by country
+// await import_authors(
+//   "authors",
+
+// )
+
+
+
+
