@@ -97,7 +97,30 @@ properties:
     importance: 2
     appliesTo:
       - entryType: _ET_AUTHOR
-
+  - id: _PROP_ROR
+    name: ROR ID
+    descriptionMD: Research Organization Registry identifier
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_INSTITUTION
+  - id: _PROP_COUNTRY_CODE
+    name: Country code
+    descriptionMD: Country code
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_INSTITUTION
+  - id: _PROP_INSTITUTION_TYPE
+    name: Institution type
+    descriptionMD: Institution type of eight used to characterize institutions by OpenAlex
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_INSTITUTION
   
 
   - id: _PROP_ANCESTORS
@@ -208,6 +231,7 @@ idMap:
     _CITED_BY_COUNT: _5jsjdLPAL9UK0i3WAQTWXK
     _PROP_LAST_KNOWN_INSTITUTION: _1JFqXKkYV2vYEjiHI1AS2F
     _PROP_ASSOCIATED_AUTHOR: _5l1iUSabWX3Oqglokv1JTZ
-
-
+    _PROP_ROR: _40f9pqAoVezJMsluDEoX8R
+    _PROP_COUNTRY_CODE: _1KL8Jd79CEYP4D0W2ae9jc
+    _PROP_INSTITUTION_TYPE: _4ri7I2Si8KbBzj6Ao36cLH
     

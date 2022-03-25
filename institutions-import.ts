@@ -106,62 +106,18 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
     if (institution.ids.wikidata) {
       addPropertyValueEditForAuthor(schema.wikidata, institution.ids.wikidata.split("/").pop());
     }
-
-    //  set the works count
-    edits.push({
-      code: "AddPropertyValue",
-      data: {
-        property: VNID("_4OujpOZawdTunrjtSQrPcb"),
-        entry: neolaceId,
-        valueExpression: `"${institution.works_count}"`,
-        propertyFactId: VNID(),
-        note: "",
-      },
-    });
-
-    //  set the microsoft academic graph id
-    if (institution.ids.mag) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
-          entry: neolaceId,
-          valueExpression: `"${institution.ids.mag}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
-    }
-
-    //  set the wikipedia id
+    addPropertyValueEditForAuthor(schema.works_count, institution.works_count);
+    addPropertyValueEditForAuthor(schema.mag_id, institution.ids.mag);
     if (institution.ids.wikipedia) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_468JDObMgV93qhEfHSAWnr"),
-          entry: neolaceId,
-          valueExpression: `"${
-            (institution.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
-          }"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
+      addPropertyValueEditForAuthor(
+        schema.wikipedia_id, 
+        (institution.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+      );
     }
-
-    //  set the updated date
-    if (institution.updated_date) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_1M7JXgQKUfgSageiKdR82T"),
-          entry: neolaceId,
-          valueExpression: `"${institution.updated_date}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
-    }
+    addPropertyValueEditForAuthor(schema.updated_date, institution.updated_date);
+    addPropertyValueEditForAuthor(schema.ror, institution.ids.ror);
+    addPropertyValueEditForAuthor(schema.country_code, institution.geo.country_code);
+    addPropertyValueEditForAuthor(schema.institution_type, institution.type);
 
     const associated_institutions = (institution.associated_institutions ?? []);
 
@@ -182,7 +138,7 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
                         id: entry_vnid,
                         friendlyId: ass_inst_id,
                         name: associated_institution.display_name,
-                        type: VNID("_6IBiJrvrPmEDXVCpdphja2"), 
+                        type: schema.institution, 
                         description: "",
                     },
                 },
@@ -196,23 +152,14 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
       if (associated_institution.relationship == "child") {
           continue; // child relationships are computed automatically
       } else if (associated_institution.relationship == "parent") {
-          relation_id = VNID("_2WcngIq4qAP8jYL0W1o7iK");
+          relation_id = schema.parent_institutions
       } else if (associated_institution.relationship == "related") {
-          relation_id = VNID("_2tGs933dsiNrejnlX8C1cS");
+          relation_id = schema.related_institutions;
       } else {
           throw new Error("Invalid relationship type.");
       }
 
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: relation_id,
-          entry: neolaceId,
-          valueExpression: `[[/entry/${entry_vnid}]]`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
+      addPropertyValueEditForAuthor(relation_id, `[[/entry/${entry_vnid}]]`);
     }
 
     const { id: draftId } = await client.createDraft({

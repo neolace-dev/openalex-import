@@ -40,27 +40,31 @@ export const schema = {
   cited_by_count: VNID("_5jsjdLPAL9UK0i3WAQTWXK"),
   last_known_institution: VNID("_1JFqXKkYV2vYEjiHI1AS2F"),
   associated_author: VNID("_5l1iUSabWX3Oqglokv1JTZ"),
+  ror: VNID("_40f9pqAoVezJMsluDEoX8R"),
+  country_code: VNID("_1KL8Jd79CEYP4D0W2ae9jc"),
+  institution_type: VNID("_4ri7I2Si8KbBzj6Ao36cLH"),
 }
+
+type PropertyValue = string | number | undefined;
 
 export function addPropertyValueEdit(
   edits: api.AnyContentEdit[],
   neolaceId: VNID,
-): (property_id: VNID, value: string | number | undefined) => void {
-
-return (property_id: VNID, value: string | number | undefined) => {
-  if (value) {
-    edits.push({
-      code: "AddPropertyValue",
-      data: {
-        property: property_id,
-        entry: neolaceId,
-        valueExpression: `"${value}"`,
-        propertyFactId: VNID(),
-        note: "",
-      },
-    })
-  }
-};
+): (property_id: VNID, value: PropertyValue) => void {
+  return (property_id: VNID, value: PropertyValue) => {
+    if (value) {
+      edits.push({
+        code: "AddPropertyValue",
+        data: {
+          property: property_id,
+          entry: neolaceId,
+          valueExpression: `"${value}"`,
+          propertyFactId: VNID(),
+          note: "",
+        },
+      })
+    }
+  };
 }
 
 async function download_things(thing_type: string) {
