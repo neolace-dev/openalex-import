@@ -1,4 +1,6 @@
 import { api, getApiClient, VNID } from "./neolace-api-client.ts";
+import { addPropertyValueEdit, schema } from "./openalex-import.ts"
+
 
 enum InstitutionType {
     education = "education",
@@ -99,18 +101,10 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
       }
     }
 
-    //  set the wikidata id
+    const addPropertyValueEditForAuthor = addPropertyValueEdit(edits, neolaceId)
+
     if (institution.ids.wikidata) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_63mbf1PWCiYQVs53ef3lcp"), 
-          entry: neolaceId,
-          valueExpression: `"${institution.ids.wikidata.split("/").pop()}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
+      addPropertyValueEditForAuthor(schema.wikidata, institution.ids.wikidata.split("/").pop());
     }
 
     //  set the works count

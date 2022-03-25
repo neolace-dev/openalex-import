@@ -5,6 +5,10 @@ import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
 import { importConceptToTheDatabase } from "./concept-import.ts"
 import { importInstitutionToTheDatabase } from "./institutions-import.ts"
 
+import { api, VNID } from "./neolace-api-client.ts";
+type NominalType<T, K extends string> = T & { nominal: K };
+type VNID = NominalType<string, "VNID">;
+
 const s3client = new S3Client({
   endPoint: "s3.amazonaws.com",
   port: 443,
@@ -14,6 +18,50 @@ const s3client = new S3Client({
   pathStyle: false,
 });
 
+
+export const schema = {
+  concept: VNID("_vj4bFX3CVAGMis4aiL4AJ"),
+  institution: VNID("_6IBiJrvrPmEDXVCpdphja2"),
+  wikidata: VNID("_63mbf1PWCiYQVs53ef3lcp"),
+  level: VNID("_3AyM6hRQL23PhhHZrboCYr"),
+  works_count: VNID("_4OujpOZawdTunrjtSQrPcb"),
+  mag_id: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
+  wikipedia_id: VNID("_468JDObMgV93qhEfHSAWnr"),
+  updated_date: VNID("_1M7JXgQKUfgSageiKdR82T"),
+  ancestors: VNID("_1uwLIPU2RI457BkrPs3rgM"),
+  related_concepts: VNID("_4wv8wdeT0B33FTQPBcAszM"),
+  descendants: VNID("_5bqPhtxKnanIkfrOUuxq4M"),
+  parent_institutions: VNID("_2WcngIq4qAP8jYL0W1o7iK"),
+  child_institutions: VNID("_47ihemw9K882NvnTGklODY"),
+  related_institutions: VNID("_2tGs933dsiNrejnlX8C1cS"),
+  scopus_id: VNID("_67iX5qqVN01rUqWk85wzco"),
+  author: VNID("_4dQI9bcpJaIbeg2GHgdPgf"),
+  orcid: VNID("_7A5Wa42OstkFT0J5uSgQe7"),
+  cited_by_count: VNID("_5jsjdLPAL9UK0i3WAQTWXK"),
+  last_known_institution: VNID("_1JFqXKkYV2vYEjiHI1AS2F"),
+  associated_author: VNID("_5l1iUSabWX3Oqglokv1JTZ"),
+}
+
+export function addPropertyValueEdit(
+  edits: api.AnyContentEdit[],
+  neolaceId: VNID,
+): (property_id: VNID, value: string | number | undefined) => void {
+
+return (property_id: VNID, value: string | number | undefined) => {
+  if (value) {
+    edits.push({
+      code: "AddPropertyValue",
+      data: {
+        property: property_id,
+        entry: neolaceId,
+        valueExpression: `"${value}"`,
+        propertyFactId: VNID(),
+        note: "",
+      },
+    })
+  }
+};
+}
 
 async function download_things(thing_type: string) {
   for await (const obj of s3client.listObjects({ prefix: `data/${thing_type}/` })) {
