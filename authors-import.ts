@@ -1,75 +1,49 @@
 import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { Institution } from "./institutions-import.ts"
-import { addPropertyValueEdit, schema, updateRelatinoships } from "./openalex-import.ts"
+import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
 type NominalType<T, K extends string> = T & { nominal: K };
 type VNID = NominalType<string, "VNID">;
 
 export interface Author {
   "id": string;
-  "orcid": string;
+  "orcid"?: string;
   "display_name": string;
-  "display_name_alternatives": string[]; // TODO add 
+  "display_name_alternatives"?: string[]; // TODO add 
   "works_count": number;
   "cited_by_count": number;
   "ids": {
     "openalex": string;
-    "orcid": string;
-    "mag": number;
-    "twitter": string; //TODO ADD
-    "wikipedia": string;
-    "scopus": string;
+    "orcid"?: string;
+    "mag"?: number;
+    "twitter"?: string; //TODO ADD
+    "wikipedia"?: string;
+    "scopus"?: string;
   };
   "last_known_institution": {
     "id": string,
-    "ror": string,
+    "ror"?: string,
     "display_name": string,
     "country_code": string,
     "type": string
   };
-  "countr_by_year": {
+  "counts_by_year": {
     "year": number,
     "works_count": number,
     "cited_by_count": number
   }[];
-  "works_api_url": string;
-  "created_date": string;
+  "works_api_url"?: string;
+  "created_date"?: string;
   "updated_date"?: string;
 }
 
 export async function importAuthorToTheDatabase(author: Author) {
     const client = await getApiClient();
     const id = author.id.split("/").pop() as string;
-    //  create a new entry
-    let neolaceId;
+    //  find or create a new entry
     const edits: api.AnyContentEdit[] = [];
-    let isNewEntry = false;
-
-    try {
-      const entry = await client.getEntry(id);
-      console.log(`   entry ${id} already exists.`);
-      neolaceId = entry.id;
-    } catch (error) {
-      if (error instanceof api.NotFound) {
-        //  create a new entry
-        neolaceId = VNID();
-        edits.push(
-          {
-            code: api.CreateEntry.code,
-            data: {
-              id: neolaceId,
-              friendlyId: id,
-              name: author.display_name,
-              type: schema.author, 
-              description: "",
-            },
-          },
-        );
-        isNewEntry = true;
-      } else {
-        throw error;
-      }
-    }
-
+    const result = await findOrCreateEntry(id, author);
+    edits.concat(result.edits);
+    const neolaceId = result.neolaceId;
+    const isNewEntry = result.isNewEntry;
 
     // const schema = await (await client.getSiteSchema("openalex"));
     // Object.values(schema.properties)
@@ -80,9 +54,11 @@ export async function importAuthorToTheDatabase(author: Author) {
     addPropertyValueEditForAuthor(schema.works_count, author.works_count);
     addPropertyValueEditForAuthor(schema.cited_by_count, author.cited_by_count);
     addPropertyValueEditForAuthor(schema.mag_id, author.ids.mag);
-    addPropertyValueEditForAuthor(schema.wikipedia_id, 
-      (author.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
-    );
+    if (author.ids.wikipedia) {
+      addPropertyValueEditForAuthor(schema.wikipedia_id, 
+        (author.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+      );
+    }
     addPropertyValueEditForAuthor(schema.scopus_id, author.ids.scopus);
     addPropertyValueEditForAuthor(schema.updated_date, author.updated_date);
 

@@ -1,5 +1,5 @@
 import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { addPropertyValueEdit, schema, updateRelatinoships } from "./openalex-import.ts"
+import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
 type NominalType<T, K extends string> = T & { nominal: K };
 type VNID = NominalType<string, "VNID">;
 
@@ -72,37 +72,13 @@ export interface Institution {
 
 export async function importInstitutionToTheDatabase(institution: Institution) {
     const client = await getApiClient();
+    const edits: api.AnyContentEdit[] = [];
     const id = institution.id.split("/").pop() as string;
 
-    let edits: api.AnyContentEdit[] = [];
-    let neolaceId;
-    let isNewEntry = false;
-
-    try {
-      const entry = await client.getEntry(id);
-      console.log(`   entry ${id} already exists.`);
-      neolaceId = entry.id;
-    } catch (error) {
-      if (error instanceof api.NotFound) {
-        //  create a new entry
-        neolaceId = VNID();
-        edits = [
-          {
-            code: api.CreateEntry.code,
-            data: {
-              id: neolaceId,
-              friendlyId: id,
-              name: institution.display_name,
-              type: schema.institution, 
-              description: "",
-            },
-          },
-        ];
-        isNewEntry = true;
-      } else {
-        throw error;
-      }
-    }
+    const result = await findOrCreateEntry(id, institution);
+    edits.concat(result.edits);
+    const neolaceId = result.neolaceId;
+    const isNewEntry = result.isNewEntry;
 
     const addPropertyValueEditForAuthor = addPropertyValueEdit(edits, neolaceId)
 

@@ -1,5 +1,5 @@
 import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { addPropertyValueEdit, schema, updateRelatinoships } from "./openalex-import.ts"
+import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
 type NominalType<T, K extends string> = T & { nominal: K };
 type VNID = NominalType<string, "VNID">;
 
@@ -50,49 +50,16 @@ export interface Concept {
 export async function importConceptToTheDatabase(concept: Concept) {
     const client = await getApiClient();
     const id = concept.id.split("/").pop() as string;
-    try {
-      await client.getEntry(id);
-      console.log(`   entry ${id} already exists.`);
-      return;
-    } catch (error) {
-      if (error instanceof api.NotFound) {
-        //  this is good we have to create the entry.
-      } else {
-        throw error;
-      }
-    }
 
-    //  create a new entry
-    let neolaceId;
+    //  find or create a new entry
     const edits: api.AnyContentEdit[] = [];
-    let isNewEntry = false;
 
-    try {
-      const entry = await client.getEntry(id);
-      console.log(`   entry ${id} already exists.`);
-      neolaceId = entry.id;
-    } catch (error) {
-      if (error instanceof api.NotFound) {
-        //  create a new entry
-        neolaceId = VNID();
-        edits.push(
-          {
-            code: api.CreateEntry.code,
-            data: {
-              id: neolaceId,
-              friendlyId: id,
-              name: concept.display_name,
-              type: schema.concept, 
-              description: concept.description ?? "",
-            },
-          },
-        );
-        isNewEntry = true;
-      } else {
-        throw error;
-      }
-    }
+    const result = await findOrCreateEntry(id, concept);
+    edits.concat(result.edits);
+    const neolaceId = result.neolaceId;
+    const isNewEntry = result.isNewEntry;
 
+    // add property values
     const addPropertyValueEditForConcept = addPropertyValueEdit(edits, neolaceId);
 
     //  set the wikidata id

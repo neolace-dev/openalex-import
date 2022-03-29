@@ -2,8 +2,8 @@
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
 import { dirname } from "https://deno.land/std@0.125.0/path/mod.ts";
 import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
-import { importConceptToTheDatabase } from "./concept-import.ts"
-import { importInstitutionToTheDatabase } from "./institutions-import.ts"
+import { Concept, importConceptToTheDatabase } from "./concept-import.ts"
+import { Institution, importInstitutionToTheDatabase } from "./institutions-import.ts"
 import { Author, importAuthorToTheDatabase } from "./authors-import.ts"
 
 import { api, VNID, getApiClient } from "./neolace-api-client.ts";
@@ -47,6 +47,50 @@ export const schema = {
 }
 
 type PropertyValue = string | number | undefined;
+
+export async function findOrCreateEntry(entry_id: string, entity: Concept | Institution | Author): 
+  Promise<{ 
+      edits: api.AnyContentEdit[], 
+      neolaceId: VNID, 
+      isNewEntry: boolean
+  }> {
+  const client = await getApiClient();
+  let neolaceId;
+  const edits: api.AnyContentEdit[] = [];
+  let isNewEntry = false;
+
+  try {
+    const entry = await client.getEntry(entry_id);
+    console.log(`   entry ${entry_id} already exists.`);
+    neolaceId = entry.id;
+  } catch (error) {
+    if (error instanceof api.NotFound) {
+      //  create a new entry
+      neolaceId = VNID();
+      edits.push(
+        {
+          code: api.CreateEntry.code,
+          data: {
+            id: neolaceId,
+            friendlyId: entry_id,
+            name: entity.display_name,
+            type: schema.concept, 
+            description: ("description" in entity && entity.description) || "",
+          },
+        },
+      );
+      isNewEntry = true;
+    } else {
+      throw error;
+    }
+  }
+
+  return {
+    edits: edits,
+    neolaceId: neolaceId,
+    isNewEntry: isNewEntry,
+  }
+} 
 
 /*
 that does nothing if relationship exists and is correct
