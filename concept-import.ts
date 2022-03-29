@@ -1,25 +1,28 @@
 import { api, getApiClient, VNID } from "./neolace-api-client.ts";
+import { addPropertyValueEdit, schema, updateRelatinoships } from "./openalex-import.ts"
+type NominalType<T, K extends string> = T & { nominal: K };
+type VNID = NominalType<string, "VNID">;
 
 export interface Concept {
   "id": string;
   "display_name": string;
-  "wikidata": string;
+  "wikidata"?: string;
   // "relevance_score":null;
   "level": number;
-  "description": string | null;
+  "description"?: string | null;
   "works_count": number;
   "cited_by_count": number;
   "ids": {
     "openalex": string;
-    "wikidata": string;
-    "wikipedia": string;
-    "umls_aui": string[];
-    "umls_cui": string[];
-    "mag": string;
+    "wikidata"?: string;
+    "wikipedia"?: string;
+    "umls_aui"?: string[];
+    "umls_cui"?: string[];
+    "mag"?: string;
   };
-  "image_url": string;
-  "image_thumbnail_url": string;
-  "international": {
+  "image_url"?: string;
+  "image_thumbnail_url"?: string;
+  "international"?: {
     "description": {
       [languageId: string]: string;
     };
@@ -29,18 +32,18 @@ export interface Concept {
   };
   "ancestors": {
     "level": number;
-    "wikidata": string;
+    "wikidata"?: string;
     "id": string;
     "display_name": string;
   }[];
-  "related_concepts": {
+  "related_concepts"?: {
     "id": string;
-    "score": number;
-    "wikidata": string | null;
+    "score"?: number;
+    "wikidata"?: string | null;
     "level": number;
     "display_name": string;
   }[];
-  "works_api_url": string;
+  "works_api_url"?: string;
   "updated_date"?: string;
 }
 
@@ -60,100 +63,58 @@ export async function importConceptToTheDatabase(concept: Concept) {
     }
 
     //  create a new entry
-    const neolaceId = VNID();
-    const edits: api.AnyContentEdit[] = [
-      {
-        code: api.CreateEntry.code,
-        data: {
-          id: neolaceId,
-          friendlyId: id,
-          name: concept.display_name,
-          type: VNID("_vj4bFX3CVAGMis4aiL4AJ"),
-          description: concept.description ?? "",
-        },
-      },
-    ];
+    let neolaceId;
+    const edits: api.AnyContentEdit[] = [];
+    let isNewEntry = false;
+
+    try {
+      const entry = await client.getEntry(id);
+      console.log(`   entry ${id} already exists.`);
+      neolaceId = entry.id;
+    } catch (error) {
+      if (error instanceof api.NotFound) {
+        //  create a new entry
+        neolaceId = VNID();
+        edits.push(
+          {
+            code: api.CreateEntry.code,
+            data: {
+              id: neolaceId,
+              friendlyId: id,
+              name: concept.display_name,
+              type: schema.concept, 
+              description: concept.description ?? "",
+            },
+          },
+        );
+        isNewEntry = true;
+      } else {
+        throw error;
+      }
+    }
+
+    const addPropertyValueEditForConcept = addPropertyValueEdit(edits, neolaceId);
 
     //  set the wikidata id
     if (concept.wikidata) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_63mbf1PWCiYQVs53ef3lcp"),
-          entry: neolaceId,
-          valueExpression: `"${concept.wikidata.split("/").pop()}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
+      addPropertyValueEditForConcept(schema.wikidata, concept.wikidata.split("/").pop());
     }
-
     //  set the level
-    edits.push({
-      code: "AddPropertyValue",
-      data: {
-        property: VNID("_3AyM6hRQL23PhhHZrboCYr"),
-        entry: neolaceId,
-        valueExpression: `"${concept.level}"`,
-        propertyFactId: VNID(),
-        note: "",
-      },
-    });
-
+    addPropertyValueEditForConcept(schema.level, concept.level);
     //  set the works count
-    edits.push({
-      code: "AddPropertyValue",
-      data: {
-        property: VNID("_4OujpOZawdTunrjtSQrPcb"),
-        entry: neolaceId,
-        valueExpression: `"${concept.works_count}"`,
-        propertyFactId: VNID(),
-        note: "",
-      },
-    });
-
+    addPropertyValueEditForConcept(schema.works_count, concept.works_count);
     //  set the microsoft academic graph id
-    if (concept.ids.mag) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
-          entry: neolaceId,
-          valueExpression: `"${concept.ids.mag}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
-    }
-
+    addPropertyValueEditForConcept(schema.mag_id, concept.ids.mag);
     //  set the wikipedia id
     if (concept.ids.wikipedia) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_468JDObMgV93qhEfHSAWnr"),
-          entry: neolaceId,
-          valueExpression: `"${
-            (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
-          }"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
+      addPropertyValueEditForConcept(
+        schema.wikipedia_id, 
+        (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+      );
     }
-
     //  set the updated date
     if (concept.updated_date) {
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_1M7JXgQKUfgSageiKdR82T"),
-          entry: neolaceId,
-          valueExpression: `"${concept.updated_date}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
+      addPropertyValueEditForConcept(schema.updated_date, concept.updated_date);
     }
 
     // deno-lint-ignore no-explicit-any
@@ -161,21 +122,13 @@ export async function importConceptToTheDatabase(concept: Concept) {
       a.level === concept.level - 1
     );
 
+    const ancestor_set = new Set<VNID>();
     for (const ancestor of parents) {
       const ancestor_id = ancestor.id.split("/").pop() as string;
       const entry_vnid = (await client.getEntry(ancestor_id)).id;
-
-      edits.push({
-        code: "AddPropertyValue",
-        data: {
-          property: VNID("_1uwLIPU2RI457BkrPs3rgM"),
-          entry: neolaceId,
-          valueExpression: `[[/entry/${entry_vnid}]]`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
+      ancestor_set.add(entry_vnid);
     }
+    edits.concat(await updateRelatinoships(schema.ancestors, neolaceId, ancestor_set, isNewEntry));
 
     const { id: draftId } = await client.createDraft({
       title: "import concept",

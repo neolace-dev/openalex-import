@@ -56,49 +56,39 @@ ASSUMES that reflective relationship are automatic.
 Only works for one rel type. Apply this function to each rel type then.
 Does NOT work for bi-directional rels.
 */
-export async function updateRelatinoships(relation_id: VNID, this_id: VNID, new_rel_set: Set<VNID>) {
-  const client = await getApiClient();
-  // get list of rels and loop through existing rels and make list of rels to delete and list of rels to add
-  const existing_rels = await getExistingRelationshipsOfType(relation_id, this_id);
-  const rels_to_delete: VNID[] = [];
-  const rels_to_add: VNID[] = [];
-  existing_rels.forEach((existing_rel) => {
-    if (!new_rel_set.has(existing_rel)) {
-      rels_to_delete.push(existing_rel);
-    }
-  });
-  new_rel_set.forEach((new_rel) => {
-    if (!existing_rels.has(new_rel)) {
-      rels_to_add.push(new_rel);
-    }
-  })
+export async function updateRelatinoships(relation_id: VNID, this_id: VNID, new_rel_set: Set<VNID>, new_entry = false) {
   const edits: api.AnyContentEdit[] = [];
-  const addPropertyValueEditRel = addPropertyValueEdit(edits, this_id)
-
-  // delete rels to delete
-  for (const rel_id of rels_to_delete) {
-    //  TODO when this is implemented
-  }
-  // add rels to add
-  for (const rel_id of rels_to_add) {
-    addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true);
-  }
-
-  // push updates
-  const { id: draftId } = await client.createDraft({
-    title: "update relationships",
-    description: "",
-    edits,
-  });
-
-  if (edits.length > 0) {
-    try {
-      await client.acceptDraft(draftId);
-    } catch {
-      console.log(edits)
-      throw Error("Draft failed during relationships update.");
+  const addPropertyValueEditRel = addPropertyValueEdit(edits, this_id);
+  // get list of rels and loop through existing rels and make list of rels to delete and list of rels to add
+  if (new_entry == true) {
+    //  if the entry is new, it does not yet exists and we need to add all new relationships in any case
+    for (const rel_id of new_rel_set) {
+      addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true);
+    }
+  } else {
+    const existing_rels = await getExistingRelationshipsOfType(relation_id, this_id);
+    const rels_to_delete: VNID[] = [];
+    const rels_to_add: VNID[] = [];
+    existing_rels.forEach((existing_rel) => {
+      if (!new_rel_set.has(existing_rel)) {
+        rels_to_delete.push(existing_rel);
+      }
+    });
+    new_rel_set.forEach((new_rel) => {
+      if (!existing_rels.has(new_rel)) {
+        rels_to_add.push(new_rel);
+      }
+    })
+    // delete rels to delete
+    for (const rel_id of rels_to_delete) {
+      //  TODO when this is implemented
+    }
+    // add rels to add
+    for (const rel_id of rels_to_add) {
+      addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true);
     }
   }
+  return edits;
 }
 
 //  return set of destination ids for existing relaitonships of type

@@ -76,6 +76,7 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
 
     let edits: api.AnyContentEdit[] = [];
     let neolaceId;
+    let isNewEntry = false;
 
     try {
       const entry = await client.getEntry(id);
@@ -97,6 +98,7 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
             },
           },
         ];
+        isNewEntry = true;
       } else {
         throw error;
       }
@@ -158,8 +160,12 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
       }
     }
 
-    updateRelatinoships(schema.parent_institutions, neolaceId, ass_inst_parent_set);
-    updateRelatinoships(schema.related_institutions, neolaceId, ass_inst_related_set);
+    edits.concat(
+      await updateRelatinoships(schema.parent_institutions, neolaceId, ass_inst_parent_set, isNewEntry)
+    );
+    edits.concat(
+      await updateRelatinoships(schema.related_institutions, neolaceId, ass_inst_related_set, isNewEntry)
+    );
 
     const { id: draftId } = await client.createDraft({
       title: "import concept",
