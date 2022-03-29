@@ -52,7 +52,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
     //  find or create a new entry
     const edits: api.AnyContentEdit[] = [];
 
-    const result = await findOrCreateEntry(id, concept);
+    const result = await findOrCreateEntry(id, schema.concept, concept);
     edits.concat(result.edits);
     const neolaceId = result.neolaceId;
     const isNewEntry = result.isNewEntry;

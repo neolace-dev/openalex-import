@@ -73,7 +73,7 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
     const edits: api.AnyContentEdit[] = [];
     const id = institution.id.split("/").pop() as string;
 
-    const result = await findOrCreateEntry(id, institution);
+    const result = await findOrCreateEntry(id, schema.institution, institution);
     edits.concat(result.edits);
     const neolaceId = result.neolaceId;
     const isNewEntry = result.isNewEntry;
@@ -105,6 +105,7 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
 
     for (const associated_institution of associated_institutions) {
       const ass_inst_id = associated_institution.id.split("/").pop() as string;
+      
       let entry_vnid;
       
       try {

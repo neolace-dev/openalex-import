@@ -46,9 +46,10 @@ export const schema = {
   institution_type: VNID("_4ri7I2Si8KbBzj6Ao36cLH"),
 }
 
-type PropertyValue = string | number | undefined;
+type PropertyValue = string | number | undefined | string[];
+type Entity = Concept | Institution | Author | Venue | Work;
 
-export async function findOrCreateEntry(entry_id: string, entity: Concept | Institution | Author): 
+export async function findOrCreateEntry(entry_id: string, entity_type_id: VNID, entity: Entity): 
   Promise<{ 
       edits: api.AnyContentEdit[], 
       neolaceId: VNID, 
@@ -73,7 +74,7 @@ export async function findOrCreateEntry(entry_id: string, entity: Concept | Inst
           data: {
             id: neolaceId,
             friendlyId: entry_id,
-            name: entity.display_name,
+            name: entity_type_id,
             type: schema.concept, 
             description: ("description" in entity && entity.description) || "",
           },

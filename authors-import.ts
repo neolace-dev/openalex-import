@@ -37,7 +37,7 @@ export async function importAuthorToTheDatabase(author: Author) {
     const id = author.id.split("/").pop() as string;
     //  find or create a new entry
     const edits: api.AnyContentEdit[] = [];
-    const result = await findOrCreateEntry(id, author);
+    const result = await findOrCreateEntry(id, schema.author, author);
     edits.concat(result.edits);
     const neolaceId = result.neolaceId;
     const isNewEntry = result.isNewEntry;
