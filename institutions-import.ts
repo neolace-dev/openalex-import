@@ -3,7 +3,7 @@ import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } 
 type NominalType<T, K extends string> = T & { nominal: K };
 type VNID = NominalType<string, "VNID">;
 
-enum InstitutionType {
+export enum InstitutionType {
     education = "education",
     healthcare = "healthcare",
     company = "company",
@@ -14,12 +14,15 @@ enum InstitutionType {
     other = "other"
 }
 
-export interface Institution {
-    "id": string;
-    "ror": string;
-    "display_name": string;
-    "country_code": string;
-    "type": InstitutionType;
+export interface DehydratedInstitution {
+  "id": string;
+  "ror"?: string;
+  "display_name": string;
+  "country_code"?: string;
+  "type": InstitutionType;
+}
+export interface Institution extends DehydratedInstitution {
+
     "homepage_url": string;
     "image_url": string;
     "image_thumbnail_url": string;
@@ -52,14 +55,9 @@ export interface Institution {
           [languageId: string]: string;
         };
       };
-    "associated_institutions": {
-        "id": string;
-        "ror": string;
-        "display_name": string;
-        "country_code": string;
-        "type": InstitutionType;
+    "associated_institutions": (DehydratedInstitution & {   
         "relationship": "parent" | "child" | "related";
-    }[];
+    })[];
     "counts_by_year": {
         "year": number;
         "works_count": number;

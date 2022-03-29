@@ -3,12 +3,14 @@ import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } 
 type NominalType<T, K extends string> = T & { nominal: K };
 type VNID = NominalType<string, "VNID">;
 
-export interface Concept {
+export interface DehydratedConcept {
   "id": string;
   "display_name": string;
   "wikidata"?: string;
-  // "relevance_score":null;
   "level": number;
+}
+export interface Concept extends DehydratedConcept {
+  // "relevance_score":null;
   "description"?: string | null;
   "works_count": number;
   "cited_by_count": number;
@@ -36,13 +38,9 @@ export interface Concept {
     "id": string;
     "display_name": string;
   }[];
-  "related_concepts"?: {
-    "id": string;
+  "related_concepts"?: (DehydratedConcept & {
     "score"?: number;
-    "wikidata"?: string | null;
-    "level": number;
-    "display_name": string;
-  }[];
+  })[];
   "works_api_url"?: string;
   "updated_date"?: string;
 }

@@ -1,12 +1,15 @@
 import { api, getApiClient, VNID } from "./neolace-api-client.ts";
+import { DehydratedInstitution } from "./institutions-import.ts"
 import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
 type NominalType<T, K extends string> = T & { nominal: K };
 type VNID = NominalType<string, "VNID">;
 
-export interface Author {
+export interface DehydratedAuthor {
   "id": string;
   "orcid"?: string;
-  "display_name": string;
+  "display_name": string;  
+}
+export interface Author extends DehydratedAuthor {
   "display_name_alternatives"?: string[]; // TODO add 
   "works_count": number;
   "cited_by_count": number;
@@ -18,13 +21,7 @@ export interface Author {
     "wikipedia"?: string;
     "scopus"?: string;
   };
-  "last_known_institution": {
-    "id": string,
-    "ror"?: string,
-    "display_name": string,
-    "country_code": string,
-    "type": string
-  };
+  "last_known_institution": DehydratedInstitution;
   "counts_by_year": {
     "year": number,
     "works_count": number,
