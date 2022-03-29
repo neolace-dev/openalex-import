@@ -1,6 +1,7 @@
 import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { addPropertyValueEdit, schema } from "./openalex-import.ts"
-
+import { addPropertyValueEdit, schema, updateRelatinoships } from "./openalex-import.ts"
+type NominalType<T, K extends string> = T & { nominal: K };
+type VNID = NominalType<string, "VNID">;
 
 enum InstitutionType {
     education = "education",
@@ -73,8 +74,8 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
     const client = await getApiClient();
     const id = institution.id.split("/").pop() as string;
 
-    let edits: api.AnyContentEdit[] = []
-    let neolaceId
+    let edits: api.AnyContentEdit[] = [];
+    let neolaceId;
 
     try {
       const entry = await client.getEntry(id);
@@ -91,7 +92,7 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
               id: neolaceId,
               friendlyId: id,
               name: institution.display_name,
-              type: VNID("_6IBiJrvrPmEDXVCpdphja2"), 
+              type: schema.institution, 
               description: "",
             },
           },
@@ -121,13 +122,16 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
 
     const associated_institutions = (institution.associated_institutions ?? []);
 
+    const ass_inst_parent_set = new Set<VNID>();
+    const ass_inst_related_set = new Set<VNID>();
+
     for (const associated_institution of associated_institutions) {
       const ass_inst_id = associated_institution.id.split("/").pop() as string;
       let entry_vnid;
-
+      
       try {
-        //  TODO check if the relationship already exists
         entry_vnid = (await client.getEntry(ass_inst_id)).id;
+
       } catch (error) {
         if (error instanceof api.NotFound) {
             //  create a new entry
@@ -147,25 +151,25 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
           throw error;
         }
       }
-
-      let relation_id;
-      if (associated_institution.relationship == "child") {
-          continue; // child relationships are computed automatically
-      } else if (associated_institution.relationship == "parent") {
-          relation_id = schema.parent_institutions
+      if (associated_institution.relationship == "parent") {
+        ass_inst_parent_set.add(entry_vnid);
       } else if (associated_institution.relationship == "related") {
-          relation_id = schema.related_institutions;
-      } else {
-          throw new Error("Invalid relationship type.");
+        ass_inst_related_set.add(entry_vnid);
       }
-
-      addPropertyValueEditForAuthor(relation_id, `[[/entry/${entry_vnid}]]`);
     }
+
+    updateRelatinoships(schema.parent_institutions, neolaceId, ass_inst_parent_set);
+    updateRelatinoships(schema.related_institutions, neolaceId, ass_inst_related_set);
 
     const { id: draftId } = await client.createDraft({
       title: "import concept",
       description: "",
       edits,
     });
-    await client.acceptDraft(draftId);
+
+    try {
+      await client.acceptDraft(draftId);
+    } catch {
+      console.log(edits)
+    }
 }

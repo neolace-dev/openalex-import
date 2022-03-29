@@ -4,8 +4,9 @@ import { dirname } from "https://deno.land/std@0.125.0/path/mod.ts";
 import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
 import { importConceptToTheDatabase } from "./concept-import.ts"
 import { importInstitutionToTheDatabase } from "./institutions-import.ts"
+import { Author, importAuthorToTheDatabase } from "./authors-import.ts"
 
-import { api, VNID } from "./neolace-api-client.ts";
+import { api, VNID, getApiClient } from "./neolace-api-client.ts";
 type NominalType<T, K extends string> = T & { nominal: K };
 type VNID = NominalType<string, "VNID">;
 
@@ -47,18 +48,104 @@ export const schema = {
 
 type PropertyValue = string | number | undefined;
 
+/*
+that does nothing if relationship exists and is correct
+deletes relationship that is not in the new list
+creates relationship when there is no relationship.
+ASSUMES that reflective relationship are automatic.
+Only works for one rel type. Apply this function to each rel type then.
+Does NOT work for bi-directional rels.
+*/
+export async function updateRelatinoships(relation_id: VNID, this_id: VNID, new_rel_set: Set<VNID>) {
+  const client = await getApiClient();
+  // get list of rels and loop through existing rels and make list of rels to delete and list of rels to add
+  const existing_rels = await getExistingRelationshipsOfType(relation_id, this_id);
+  const rels_to_delete: VNID[] = [];
+  const rels_to_add: VNID[] = [];
+  existing_rels.forEach((existing_rel) => {
+    if (!new_rel_set.has(existing_rel)) {
+      rels_to_delete.push(existing_rel);
+    }
+  });
+  new_rel_set.forEach((new_rel) => {
+    if (!existing_rels.has(new_rel)) {
+      rels_to_add.push(new_rel);
+    }
+  })
+  const edits: api.AnyContentEdit[] = [];
+  const addPropertyValueEditRel = addPropertyValueEdit(edits, this_id)
+
+  // delete rels to delete
+  for (const rel_id of rels_to_delete) {
+    //  TODO when this is implemented
+  }
+  // add rels to add
+  for (const rel_id of rels_to_add) {
+    addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true);
+  }
+
+  // push updates
+  const { id: draftId } = await client.createDraft({
+    title: "update relationships",
+    description: "",
+    edits,
+  });
+
+  if (edits.length > 0) {
+    try {
+      await client.acceptDraft(draftId);
+    } catch {
+      console.log(edits)
+      throw Error("Draft failed during relationships update.");
+    }
+  }
+}
+
+//  return set of destination ids for existing relaitonships of type
+async function getExistingRelationshipsOfType(relation_id: VNID, from_id: VNID): Promise<Set<VNID>> {
+  const rel_set: Set<VNID> = new Set();
+  const client = await getApiClient();
+  const result = await client.evaluateLookupExpression(`this.get(prop=[[/prop/${relation_id}]])`, {entryKey: from_id});
+  if (result.resultValue.type == "Page") {
+    for (let entry of result.resultValue.values) {
+      if (entry.type == "Annotated") {
+        entry = entry.value;
+      }
+      if (entry.type == "Entry") {
+        rel_set.add(entry.id);
+      } else {
+        console.log(entry)
+        throw new Error("Unexpeted type");
+      }
+    }
+  }
+  return rel_set;
+}
+
+export async function checkIfRelatinshipExists(relation_id: VNID, from_id: VNID, to_id: VNID): Promise<boolean> {
+  let relationship_exists = false;
+  const rel_list = await getExistingRelationshipsOfType(relation_id, from_id);
+  for (const id of rel_list) {
+    if (id == to_id) {
+      relationship_exists = true;
+      break;
+    }
+  }
+  return relationship_exists;
+}
+
 export function addPropertyValueEdit(
   edits: api.AnyContentEdit[],
   neolaceId: VNID,
-): (property_id: VNID, value: PropertyValue) => void {
-  return (property_id: VNID, value: PropertyValue) => {
+): (property_id: VNID, value: PropertyValue, expression?: boolean) => void {
+  return (property_id: VNID, value: PropertyValue, expression = false) => {
     if (value) {
       edits.push({
         code: "AddPropertyValue",
         data: {
           property: property_id,
           entry: neolaceId,
-          valueExpression: `"${value}"`,
+          valueExpression: expression ? `${value}` : `"${value}"`,
           propertyFactId: VNID(),
           note: "",
         },
