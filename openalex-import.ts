@@ -102,12 +102,12 @@ Does NOT work for bi-directional rels.
 */
 export async function updateRelatinoships(relation_id: VNID, this_id: VNID, new_rel_set: Set<VNID>, new_entry = false) {
   const edits: api.AnyContentEdit[] = [];
-  const addPropertyValueEditRel = addPropertyValueEdit(edits, this_id);
+  const addPropertyValueEditRel = addPropertyValueEdit(this_id);
   // get list of rels and loop through existing rels and make list of rels to delete and list of rels to add
   if (new_entry == true) {
     //  if the entry is new, it does not yet exists and we need to add all new relationships in any case
     for (const rel_id of new_rel_set) {
-      addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true);
+      edits.concat(addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true));
     }
   } else {
     const existing_rels = await getExistingRelationshipsOfType(relation_id, this_id);
@@ -129,7 +129,7 @@ export async function updateRelatinoships(relation_id: VNID, this_id: VNID, new_
     }
     // add rels to add
     for (const rel_id of rels_to_add) {
-      addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true);
+      edits.concat(addPropertyValueEditRel(relation_id, `[[/entry/${rel_id}]]`, true));
     }
   }
   return edits;
@@ -169,10 +169,10 @@ export async function checkIfRelatinshipExists(relation_id: VNID, from_id: VNID,
 }
 
 export function addPropertyValueEdit(
-  edits: api.AnyContentEdit[],
   neolaceId: VNID,
-): (property_id: VNID, value: PropertyValue, expression?: boolean) => void {
-  return (property_id: VNID, value: PropertyValue, expression = false) => {
+): (property_id: VNID, value: PropertyValue, expression?: boolean) => api.AnyContentEdit[] {
+  return (property_id: VNID, value: PropertyValue, expression = false): api.AnyContentEdit[] => {
+    const edits: api.AnyContentEdit[] = []; 
     if (value) {
       edits.push({
         code: "AddPropertyValue",
@@ -183,8 +183,9 @@ export function addPropertyValueEdit(
           propertyFactId: VNID(),
           note: "",
         },
-      })
+      });
     }
+    return edits;
   };
 }
 

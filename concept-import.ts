@@ -60,28 +60,30 @@ export async function importConceptToTheDatabase(concept: Concept) {
     const isNewEntry = result.isNewEntry;
 
     // add property values
-    const addPropertyValueEditForConcept = addPropertyValueEdit(edits, neolaceId);
+    const addPropertyForConcept = addPropertyValueEdit(neolaceId);
 
     //  set the wikidata id
     if (concept.wikidata) {
-      addPropertyValueEditForConcept(schema.wikidata, concept.wikidata.split("/").pop());
+      edits.concat(addPropertyForConcept(schema.wikidata, concept.wikidata.split("/").pop()));
     }
     //  set the level
-    addPropertyValueEditForConcept(schema.level, concept.level);
+    edits.concat(addPropertyForConcept(schema.level, concept.level));
     //  set the works count
-    addPropertyValueEditForConcept(schema.works_count, concept.works_count);
+    edits.concat(addPropertyForConcept(schema.works_count, concept.works_count));
     //  set the microsoft academic graph id
-    addPropertyValueEditForConcept(schema.mag_id, concept.ids.mag);
+    edits.concat(addPropertyForConcept(schema.mag_id, concept.ids.mag));
     //  set the wikipedia id
     if (concept.ids.wikipedia) {
-      addPropertyValueEditForConcept(
-        schema.wikipedia_id, 
-        (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+      edits.concat(
+        addPropertyForConcept(
+          schema.wikipedia_id, 
+          (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+        )
       );
     }
     //  set the updated date
     if (concept.updated_date) {
-      addPropertyValueEditForConcept(schema.updated_date, concept.updated_date);
+      edits.concat(addPropertyForConcept(schema.updated_date, concept.updated_date));
     }
 
     // deno-lint-ignore no-explicit-any

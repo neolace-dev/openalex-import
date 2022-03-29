@@ -80,23 +80,25 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
     const neolaceId = result.neolaceId;
     const isNewEntry = result.isNewEntry;
 
-    const addPropertyValueEditForAuthor = addPropertyValueEdit(edits, neolaceId)
+    const addPropertyForAuthor = addPropertyValueEdit(neolaceId)
 
     if (institution.ids.wikidata) {
-      addPropertyValueEditForAuthor(schema.wikidata, institution.ids.wikidata.split("/").pop());
+      edits.concat(addPropertyForAuthor(schema.wikidata, institution.ids.wikidata.split("/").pop()));
     }
-    addPropertyValueEditForAuthor(schema.works_count, institution.works_count);
-    addPropertyValueEditForAuthor(schema.mag_id, institution.ids.mag);
+    edits.concat(addPropertyForAuthor(schema.works_count, institution.works_count));
+    edits.concat(addPropertyForAuthor(schema.mag_id, institution.ids.mag));
     if (institution.ids.wikipedia) {
-      addPropertyValueEditForAuthor(
-        schema.wikipedia_id, 
-        (institution.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+      edits.concat(
+        addPropertyForAuthor(
+          schema.wikipedia_id, 
+          (institution.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+        )
       );
     }
-    addPropertyValueEditForAuthor(schema.updated_date, institution.updated_date);
-    addPropertyValueEditForAuthor(schema.ror, institution.ids.ror);
-    addPropertyValueEditForAuthor(schema.country_code, institution.geo.country_code);
-    addPropertyValueEditForAuthor(schema.institution_type, institution.type);
+    edits.concat(addPropertyForAuthor(schema.updated_date, institution.updated_date));
+    edits.concat(addPropertyForAuthor(schema.ror, institution.ids.ror));
+    edits.concat(addPropertyForAuthor(schema.country_code, institution.geo.country_code));
+    edits.concat(addPropertyForAuthor(schema.institution_type, institution.type));
 
     const associated_institutions = (institution.associated_institutions ?? []);
 

@@ -48,19 +48,21 @@ export async function importAuthorToTheDatabase(author: Author) {
     // const schema = await (await client.getSiteSchema("openalex"));
     // Object.values(schema.properties)
 
-    const addPropertyValueEditForAuthor = addPropertyValueEdit(edits, neolaceId)
+    const addPropertyForAuthor = addPropertyValueEdit(neolaceId)
 
-    addPropertyValueEditForAuthor(schema.orcid, author.orcid);
-    addPropertyValueEditForAuthor(schema.works_count, author.works_count);
-    addPropertyValueEditForAuthor(schema.cited_by_count, author.cited_by_count);
-    addPropertyValueEditForAuthor(schema.mag_id, author.ids.mag);
+    edits.concat(addPropertyForAuthor(schema.orcid, author.orcid));
+    edits.concat(addPropertyForAuthor(schema.works_count, author.works_count));
+    edits.concat(addPropertyForAuthor(schema.cited_by_count, author.cited_by_count));
+    edits.concat(addPropertyForAuthor(schema.mag_id, author.ids.mag));
     if (author.ids.wikipedia) {
-      addPropertyValueEditForAuthor(schema.wikipedia_id, 
-        (author.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+      edits.concat(
+        addPropertyForAuthor(schema.wikipedia_id, 
+          (author.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+        )
       );
     }
-    addPropertyValueEditForAuthor(schema.scopus_id, author.ids.scopus);
-    addPropertyValueEditForAuthor(schema.updated_date, author.updated_date);
+    edits.concat(addPropertyForAuthor(schema.scopus_id, author.ids.scopus));
+    edits.concat(addPropertyForAuthor(schema.updated_date, author.updated_date));
 
     // link the last known institution
     if (author.last_known_institution) {
@@ -91,10 +93,10 @@ export async function importAuthorToTheDatabase(author: Author) {
           );
 
           // add included properties to last known institution stub entry
-          const addPropertyValueEditInst = addPropertyValueEdit(edits, institution_vnid)
-          addPropertyValueEditInst(schema.ror, author.last_known_institution.ror);
-          addPropertyValueEditInst(schema.country_code, author.last_known_institution.country_code);
-          addPropertyValueEditInst(schema.institution_type, author.last_known_institution.type);
+          const addPropertyValueEditInst = addPropertyValueEdit(institution_vnid)
+          edits.concat(addPropertyValueEditInst(schema.ror, author.last_known_institution.ror));
+          edits.concat(addPropertyValueEditInst(schema.country_code, author.last_known_institution.country_code));
+          edits.concat(addPropertyValueEditInst(schema.institution_type, author.last_known_institution.type));
         } else {
           throw error;
         }
