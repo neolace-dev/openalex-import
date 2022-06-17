@@ -79,8 +79,8 @@ export async function importConceptToTheDatabase(concept: Concept) {
       edits.push({
         code: "AddPropertyValue",
         data: {
-          property: VNID("_63mbf1PWCiYQVs53ef3lcp"),
-          entry: neolaceId,
+          propertyId: VNID("_63mbf1PWCiYQVs53ef3lcp"),
+          entryId: neolaceId,
           valueExpression: `"${concept.wikidata.split("/").pop()}"`,
           propertyFactId: VNID(),
           note: "",
@@ -92,8 +92,8 @@ export async function importConceptToTheDatabase(concept: Concept) {
     edits.push({
       code: "AddPropertyValue",
       data: {
-        property: VNID("_3AyM6hRQL23PhhHZrboCYr"),
-        entry: neolaceId,
+        propertyId: VNID("_3AyM6hRQL23PhhHZrboCYr"),
+        entryId: neolaceId,
         valueExpression: `"${concept.level}"`,
         propertyFactId: VNID(),
         note: "",
@@ -104,8 +104,8 @@ export async function importConceptToTheDatabase(concept: Concept) {
     edits.push({
       code: "AddPropertyValue",
       data: {
-        property: VNID("_4OujpOZawdTunrjtSQrPcb"),
-        entry: neolaceId,
+        propertyId: VNID("_4OujpOZawdTunrjtSQrPcb"),
+        entryId: neolaceId,
         valueExpression: `"${concept.works_count}"`,
         propertyFactId: VNID(),
         note: "",
@@ -117,8 +117,8 @@ export async function importConceptToTheDatabase(concept: Concept) {
       edits.push({
         code: "AddPropertyValue",
         data: {
-          property: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
-          entry: neolaceId,
+          propertyId: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
+          entryId: neolaceId,
           valueExpression: `"${concept.ids.mag}"`,
           propertyFactId: VNID(),
           note: "",
@@ -131,8 +131,8 @@ export async function importConceptToTheDatabase(concept: Concept) {
       edits.push({
         code: "AddPropertyValue",
         data: {
-          property: VNID("_468JDObMgV93qhEfHSAWnr"),
-          entry: neolaceId,
+          propertyId: VNID("_468JDObMgV93qhEfHSAWnr"),
+          entryId: neolaceId,
           valueExpression: `"${
             (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
           }"`,
@@ -147,8 +147,8 @@ export async function importConceptToTheDatabase(concept: Concept) {
       edits.push({
         code: "AddPropertyValue",
         data: {
-          property: VNID("_1M7JXgQKUfgSageiKdR82T"),
-          entry: neolaceId,
+          propertyId: VNID("_1M7JXgQKUfgSageiKdR82T"),
+          entryId: neolaceId,
           valueExpression: `"${concept.updated_date}"`,
           propertyFactId: VNID(),
           note: "",
@@ -168,8 +168,8 @@ export async function importConceptToTheDatabase(concept: Concept) {
       edits.push({
         code: "AddPropertyValue",
         data: {
-          property: VNID("_1uwLIPU2RI457BkrPs3rgM"),
-          entry: neolaceId,
+          propertyId: VNID("_1uwLIPU2RI457BkrPs3rgM"),
+          entryId: neolaceId,
           valueExpression: `[[/entry/${entry_vnid}]]`,
           propertyFactId: VNID(),
           note: "",

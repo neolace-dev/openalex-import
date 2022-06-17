@@ -54,7 +54,18 @@ async function import_concepts() {
         if (concept.trim() == '') {
           continue;
         }
-        const json_concept = JSON.parse(concept);
+        let json_concept;
+        try {
+          json_concept = JSON.parse(concept);
+        } catch {
+          try {
+            // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
+            json_concept = JSON.parse(concept.replaceAll(`\\\\`, `\\`));
+          } catch (err) {
+            console.error(`JSON entity could not be parsed:\n`, concept);
+            throw err;
+          }
+        }
         // console.log(json_concept);
         if (json_concept.level == level) {
           pendingPromises.push(importConceptToTheDatabase(json_concept));
