@@ -68,7 +68,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
           id: neolaceId,
           friendlyId: id,
           name: concept.display_name,
-          type: VNID("_vj4bFX3CVAGMis4aiL4AJ"),
+          type: VNID("_vj4bFX3CVAGMis4aiL4AJ"), // "Concept" entry type
           description: concept.description ?? "",
         },
       },
@@ -168,7 +168,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
       edits.push({
         code: "AddPropertyValue",
         data: {
-          propertyId: VNID("_1uwLIPU2RI457BkrPs3rgM"),
+          propertyId: VNID("_1uwLIPU2RI457BkrPs3rgM"), // "Parent Concept" property
           entryId: neolaceId,
           valueExpression: `[[/entry/${entry_vnid}]]`,
           propertyFactId: VNID(),

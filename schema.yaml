@@ -55,8 +55,8 @@ properties:
     importance: 5
     appliesTo:
       - entryType: _ET_CONCEPT
-  - id: _PROP_ANCESTORS
-    name: Ancestors
+  - id: _PROP_PARENT_CONCEPT
+    name: Parent Concept
     descriptionMD: List of concepts that this concept descends from.
     type: IS_A
     mode: REC
@@ -64,16 +64,16 @@ properties:
     appliesTo:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
-  - id: _PROP_DESCENDANTS
-    name: Descendants
-    descriptionMD: List of concepts that this concept is an ancestor of.
+  - id: _PROP_CHILD_CONCEPTS
+    name: Child Concepts
+    descriptionMD: List of concepts that this concept is a parent of.
     type: RELATES_TO
     mode: AUTO
     importance: 0
     appliesTo:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
-    default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
+    default: 'this.reverse(prop=[[/prop/_PROP_PARENT_CONCEPT]])'
     
   - id: _PROP_RELATED_CONCEPTS
     name: Related concepts
@@ -97,6 +97,6 @@ idMap:
     _PROP_MAG_ID: _1i2GXNofq5YEgaA3R9F4KN
     _PROP_WIKIPEDIA_ID: _468JDObMgV93qhEfHSAWnr
     _PROP_UPDATED_DATE: _1M7JXgQKUfgSageiKdR82T
-    _PROP_ANCESTORS: _1uwLIPU2RI457BkrPs3rgM
+    _PROP_PARENT_CONCEPT: _1uwLIPU2RI457BkrPs3rgM
     _PROP_RELATED_CONCEPTS: _4wv8wdeT0B33FTQPBcAszM
-    _PROP_DESCENDANTS: _5bqPhtxKnanIkfrOUuxq4M
+    _PROP_CHILD_CONCEPTS: _5bqPhtxKnanIkfrOUuxq4M
