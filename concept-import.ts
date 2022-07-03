@@ -49,7 +49,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
     const id = concept.id.split("/").pop() as string;
     try {
       await client.getEntry(id);
-      console.log(`   entry ${id} already exists.`);
+      console.log(`   entry ${id} already exists.`);  // FIXME: This should actually overwrite/update the entry in this case; not just skip it.
       return;
     } catch (error) {
       if (error instanceof api.NotFound) {
