@@ -10,7 +10,7 @@ properties:
     descriptionMD: The Wikidata ID for this concept. 
     type: VALUE
     mode: REC
-    importance: 3
+    rank: 3
     appliesTo:
       - entryType: _ET_CONCEPT
     displayAs: "[{value}](https://www.wikidata.org/wiki/{value})"
@@ -19,7 +19,7 @@ properties:
     descriptionMD: The level in the concept tree where this concept lives.
     type: VALUE
     mode: REC
-    importance: 2
+    rank: 2
     appliesTo:
       - entryType: _ET_CONCEPT
   - id: _PROP_WORKS_COUNT
@@ -27,7 +27,7 @@ properties:
     descriptionMD: The number of works tagged with this concept.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_CONCEPT
   - id: _PROP_MAG_ID
@@ -35,7 +35,7 @@ properties:
     descriptionMD: Microsoft Academic Graph ID.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_CONCEPT
   - id: _PROP_WIKIPEDIA_ID
@@ -43,7 +43,7 @@ properties:
     descriptionMD: The concept's Wikipedia page URL.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_CONCEPT
     displayAs: "[{value}](https://en.wikipedia.org/wiki/{value})"
@@ -52,7 +52,7 @@ properties:
     descriptionMD: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_CONCEPT
   - id: _PROP_PARENT_CONCEPT
@@ -60,7 +60,7 @@ properties:
     descriptionMD: List of concepts that this concept descends from.
     type: IS_A
     mode: REC
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
@@ -69,7 +69,7 @@ properties:
     descriptionMD: List of concepts that this concept is a parent of.
     type: RELATES_TO
     mode: AUTO
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
@@ -80,7 +80,7 @@ properties:
     descriptionMD: Concepts that are similar to this one.
     type: RELATES_TO
     mode: REC
-    importance: 1
+    rank: 1
     appliesTo:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
