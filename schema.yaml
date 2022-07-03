@@ -63,7 +63,7 @@ properties:
     rank: 0
     appliesTo:
       - entryType: _ET_CONCEPT
-    valueConstraint: x.type() = entryType("_ET_CONCEPT")
+    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
   - id: _PROP_CHILD_CONCEPTS
     name: Child Concepts
     descriptionMD: List of concepts that this concept is a parent of.
@@ -72,8 +72,8 @@ properties:
     rank: 0
     appliesTo:
       - entryType: _ET_CONCEPT
-    valueConstraint: x.type() = entryType("_ET_CONCEPT")
-    default: 'this.reverse(prop=[[/prop/_PROP_PARENT_CONCEPT]])'
+    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
+    default: 'this.reverse(prop=prop("_PROP_PARENT_CONCEPT"))'
     
   - id: _PROP_RELATED_CONCEPTS
     name: Related concepts
@@ -83,7 +83,7 @@ properties:
     rank: 1
     appliesTo:
       - entryType: _ET_CONCEPT
-    valueConstraint: x.type() = entryType("_ET_CONCEPT")
+    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
 
 idMap:
   comment: >-

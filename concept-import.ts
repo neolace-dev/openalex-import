@@ -170,7 +170,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
         data: {
           propertyId: VNID("_1uwLIPU2RI457BkrPs3rgM"), // "Parent Concept" property
           entryId: neolaceId,
-          valueExpression: `[[/entry/${entry_vnid}]]`,
+          valueExpression: `entry("${entry_vnid}")`,
           propertyFactId: VNID(),
           note: "",
         },
