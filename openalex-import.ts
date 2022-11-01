@@ -159,10 +159,7 @@ async function getExistingRelationshipsOfType(relation_id: VNID, from_id: VNID):
   const client = await getApiClient();
   const result = await client.evaluateLookupExpression(`this.get(prop=[[/prop/${relation_id}]])`, {entryKey: from_id});
   if (result.resultValue.type == "Page") {
-    for (let entry of result.resultValue.values) {
-      if (entry.type == "Annotated") {
-        entry = entry.value;
-      }
+    for (const entry of result.resultValue.values) {
       if (entry.type == "Entry") {
         rel_set.add(entry.id);
       } else {
@@ -196,8 +193,8 @@ export function addPropertyValueEdit(
       edits.push({
         code: "AddPropertyValue",
         data: {
-          property: property_id,
-          entry: neolaceId,
+          propertyId: property_id,
+          entryId: neolaceId,
           valueExpression: (expression || typeof value == "number") ? `${value}` : `"${value}"`,
           propertyFactId: VNID(),
           note: "",
@@ -244,31 +241,44 @@ async function import_entities(
 
   console.log(`There are a total of ${all_files.length}.`);
   console.time("overall");
-
-  for (const path of all_files) {
-    console.log(path);
-    const curr_obj = await Deno.readFile(path);
-    const curr_file = gunzip(curr_obj);
-    const curr_string = new TextDecoder().decode(curr_file); // BUG deno bug occurs here
-    const lines = curr_string.split('\n');
-
-    let pendingPromises: Promise<void>[] = [];
-
-    for (const entity of lines) {
-      if (entity.trim() == '') {
-        continue;
+  for (let level = 0 ; level <= 2; level++) {
+    console.time(`level ${level}`);
+    for (const path of all_files) {
+      console.log(`Processing level ${level} entries in file at path ${path}`);
+      const curr_obj = await Deno.readFile(path);
+      const curr_file = gunzip(curr_obj);
+      const curr_string = new TextDecoder().decode(curr_file);
+      const lines = curr_string.split('\n');
+  
+      let pendingPromises: Promise<void>[] = [];
+  
+      for (const concept of lines) {
+        if (concept.trim() == '') {
+          continue;
+        }
+        let json_concept;
+        try {
+          json_concept = JSON.parse(concept);
+        } catch {
+          try {
+            // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
+            json_concept = JSON.parse(concept.replaceAll(`\\\\`, `\\`));
+          } catch (err) {
+            console.error(`JSON entity could not be parsed:\n`, concept);
+            throw err;
+          }
+        }
+        // console.log(json_concept);
+        if (json_concept.level == level) {
+          pendingPromises.push(importConceptToTheDatabase(json_concept));
+        }
+        if (pendingPromises.length > 5) {
+          await Promise.all(pendingPromises);
+          pendingPromises = [];
+        }
       }
-      const json_entity = JSON.parse(entity);
-      // console.log(json_concept);
-      if (checkCriterion(json_entity)) {
-        pendingPromises.push(entity_import(json_entity));
-      }
-      if (pendingPromises.length > 5) {
-        await Promise.all(pendingPromises);
-        pendingPromises = [];
-      }
+      await Promise.all(pendingPromises);
     }
-    await Promise.all(pendingPromises);
   }
   console.timeEnd("overall");
 }

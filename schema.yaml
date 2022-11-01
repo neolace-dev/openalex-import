@@ -27,7 +27,7 @@ properties:
     descriptionMD: The Wikidata ID for this concept. 
     type: VALUE
     mode: REC
-    importance: 3
+    rank: 3
     appliesTo:
       - entryType: _ET_CONCEPT
       - entryType: _ET_INSTITUTION
@@ -37,7 +37,7 @@ properties:
     descriptionMD: The level in the concept tree where this concept lives.
     type: VALUE
     mode: REC
-    importance: 2
+    rank: 2
     appliesTo:
       - entryType: _ET_CONCEPT
   - id: _PROP_WORKS_COUNT
@@ -45,7 +45,7 @@ properties:
     descriptionMD: The number of works tagged with this concept.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_CONCEPT
       - entryType: _ET_INSTITUTION
@@ -66,7 +66,7 @@ properties:
     descriptionMD: Microsoft Academic Graph ID.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
@@ -78,7 +78,7 @@ properties:
     descriptionMD: The concept's Wikipedia page URL.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
@@ -97,7 +97,7 @@ properties:
     descriptionMD: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
@@ -258,34 +258,35 @@ properties:
       - entryType: _ET_WORK
 
 # RELATIONSHIPS
-  - id: _PROP_ANCESTORS
-    name: Ancestors
+  - id: _PROP_PARENT_CONCEPT
+    name: Parent Concept
     descriptionMD: List of concepts that this concept descends from.
     type: IS_A
     mode: REC
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_CONCEPT
-    valueConstraint: x.type() = entryType("_ET_CONCEPT")
-  - id: _PROP_DESCENDANTS
-    name: Descendants
-    descriptionMD: List of concepts that this concept is an ancestor of.
+    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
+  - id: _PROP_CHILD_CONCEPTS
+    name: Child Concepts
+    descriptionMD: List of concepts that this concept is a parent of.
     type: RELATES_TO
     mode: AUTO
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_CONCEPT
-    valueConstraint: x.type() = entryType("_ET_CONCEPT")
-    default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
+    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
+    default: 'this.reverse(prop=prop("_PROP_PARENT_CONCEPT"))'
+    
   - id: _PROP_RELATED_CONCEPTS
     name: Related concepts
     descriptionMD: Concepts that are similar to this one.
     type: RELATES_TO
     mode: REC
-    importance: 1
+    rank: 1
     appliesTo:
       - entryType: _ET_CONCEPT
-    valueConstraint: x.type() = entryType("_ET_CONCEPT")
+    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
   - id: _PROP_PARENT_INSTITUTIONS
     name: Parents
     descriptionMD: List of parent institutions.
@@ -294,7 +295,7 @@ properties:
     importance: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
-    valueConstraint: x.type() = entryType("_ET_INSTITUTION")
+    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
   - id: _PROP_CHILD_INSTITUTIONS
     name: Child institutions
     descriptionMD: List of child institutions.
@@ -303,7 +304,7 @@ properties:
     importance: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
-    valueConstraint: x.type() = entryType("_ET_INSTITUTION")
+    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
     default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
   - id: _PROP_RELATED_INSTITUTIONS
     name: Related institutions
@@ -313,7 +314,7 @@ properties:
     importance: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
-    valueConstraint: x.type() = entryType("_ET_INSTITUTION")
+    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
   - id: _PROP_LAST_KNOWN_INSTITUTION
     name: Last known institution
     descriptionMD: Last known associated instituion.
@@ -322,7 +323,7 @@ properties:
     importance: 0
     appliesTo:
       - entryType: _ET_AUTHOR
-    valueConstraint: x.type() = entryType("_ET_INSTITUTION")
+    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
   - id: _PROP_ASSOCIATED_AUTHOR
     name: Associated author
     descriptionMD: Author associated with this institution.
@@ -331,7 +332,7 @@ properties:
     importance: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
-    valueConstraint: x.type() = entryType("_ET_AUTHOR")
+    valueConstraint: x.entryType() = entryType("_ET_AUTHOR")
     default: 'this.reverse(prop=[[/prop/_PROP_LAST_KNOWN_INSTITUTION]])'
   - id: _PROP_HOST_VENUE
     name: Host venue
@@ -341,7 +342,7 @@ properties:
     importance: 0
     appliesTo:
       - entryType: _ET_WORK
-    valueConstraint: x.type() = entryType("_ET_VENUE")
+    valueConstraint: x.entryType() = entryType("_ET_VENUE")
   
 
 idMap:
@@ -357,7 +358,7 @@ idMap:
     _PROP_MAG_ID: _1i2GXNofq5YEgaA3R9F4KN
     _PROP_WIKIPEDIA_ID: _468JDObMgV93qhEfHSAWnr
     _PROP_UPDATED_DATE: _1M7JXgQKUfgSageiKdR82T
-    _PROP_ANCESTORS: _1uwLIPU2RI457BkrPs3rgM
+    _PROP_PARENT_CONCEPT: _1uwLIPU2RI457BkrPs3rgM
     _PROP_RELATED_CONCEPTS: _4wv8wdeT0B33FTQPBcAszM
     _PROP_DESCENDANTS: _5bqPhtxKnanIkfrOUuxq4M
     _PROP_PARENT_INSTITUTIONS: _2WcngIq4qAP8jYL0W1o7iK
@@ -390,3 +391,4 @@ idMap:
     _PROP_IS_PARATEXT: _13TQUi0GMmUCxX1HEdGuF8
     
     
+    _PROP_CHILD_CONCEPTS: _5bqPhtxKnanIkfrOUuxq4M

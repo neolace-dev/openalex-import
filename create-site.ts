@@ -6,36 +6,31 @@
 import * as log from "std/log/mod.ts";
 import { EmptyResultError, VNID } from "neolace/deps/vertex-framework.ts";
 
-import { graph } from "neolace/core/graph.ts";
-import { CreateUser, User } from "neolace/core/User.ts";
+import { getGraph } from "neolace/core/graph.ts";
+import { User } from "neolace/core/User.ts";
 import { CreateSite, Site, UpdateSite } from "neolace/core/Site.ts";
 import { siteData } from "./site.ts";
 import { shutdown } from "neolace/app/shutdown.ts";
+
+const graph = await getGraph();
 
 // Now create the OpenAlex example content too:
 
 log.info("Checking users and site...");
 
 // Create "Braden" for initial content, if it doesn't already exist
-const {id: _bradenId} = await graph.pullOne(User, u => u.id, {key: "user-braden"}).catch(err => {
-    if (!(err instanceof EmptyResultError)) { throw err; }
-    return graph.runAsSystem(CreateUser({
-        email: "braden@neolace.com",
-        username: "braden",
-        fullName: "Braden MacDonald",
-    }));
-});
+const {id: adminUserId} = await graph.pullOne(User, u => u.id, {key: "user-admin"});
 
 // Create the "OpenAlex" site:
 const {id: siteId} = await graph.pullOne(Site, s => s.id, {key: "site-openalex"}).catch(err =>{
     if (!(err instanceof EmptyResultError)) { throw err; }
-    return graph.runAs(_bradenId, CreateSite({
+    return graph.runAsSystem(CreateSite({
         id: VNID("_siteOPENALEX"),
         name: "OpenAlex",
         domain: "openalex.local.neolace.net",
         slugId: `site-openalex`,
         siteCode: "OPENA",
-        adminUser: _bradenId,
+        adminUser: adminUserId,
     }));
 });
 

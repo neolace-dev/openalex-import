@@ -23,5 +23,8 @@ export const siteData: Partial<Parameters<typeof UpdateSite>[0]> = {
         features: {
             hoverPreview: {enabled: true},
         },
+        plugins: {
+            search: {},
+        },
     },
 };
