@@ -14,7 +14,14 @@ entryTypes:
     description: An OpenAlex Author
     friendlyIdPrefix: A
     enabledFeatures: {}
+  - id: _ET_VENUE
+    name: Venue
+    description: An OpenAlex Venue
+    friendlyIdPrefix: V
+    enabledFeatures: {}
 properties:
+
+#  NON-RELATIONSHIPS
   - id: _PROP_WIKIDATA
     name: Wikidata
     descriptionMD: The Wikidata ID for this concept. 
@@ -43,6 +50,7 @@ properties:
       - entryType: _ET_CONCEPT
       - entryType: _ET_INSTITUTION
       - entryType: _ET_AUTHOR
+      - entryType: _ET_VENUE
   - id: _CITED_BY_COUNT
     name: Cited By Count
     descriptionMD: The number of citations accumulated.
@@ -51,6 +59,8 @@ properties:
     importance: 5
     appliesTo:
       - entryType: _ET_AUTHOR
+      - entryType: _ET_VENUE
+      - entryType: _ET_WORK
   - id: _PROP_MAG_ID
     name: MAG ID
     descriptionMD: Microsoft Academic Graph ID.
@@ -61,6 +71,8 @@ properties:
       - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
       - entryType: _ET_AUTHOR
+      - entryType: _ET_VENUE
+      - entryType: _ET_WORK
   - id: _PROP_WIKIPEDIA_ID
     name: Wikipedia ID
     descriptionMD: The concept's Wikipedia page URL.
@@ -89,6 +101,9 @@ properties:
     appliesTo:
       - entryType: _ET_INSTITUTION
       - entryType: _ET_CONCEPT
+      - entryType: _ET_AUTHOR
+      - entryType: _ET_VENUE
+      - entryType: _ET_WORK
   - id: _PROP_ORCID
     name: ORCID
     descriptionMD: The ORCID of the author.
@@ -121,8 +136,128 @@ properties:
     importance: 5
     appliesTo:
       - entryType: _ET_INSTITUTION
-  
+    - id: _PROP_ISSN_L
+    name: ISSN-L
+    descriptionMD: The ISSN-L or Linking ISSN is a single canonical ISSN for all media versions of the title.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_VENUE
+    - id: _PROP_ISSN
+    name: ISSN
+    descriptionMD: The list of ISSNs for this venue.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_VENUE
+    - id: _PROP_COUNTS_BY_YEAR
+    name: Counts by year
+    descriptionMD: List of works_count and cited_by_count for each of the last ten years, binned by year.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_VENUE
+    - id: _PROP_WORKS_API_URL
+    name: Works api URL
+    descriptionMD: LA URL that will get you a list of all this venue's Works.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_VENUE
+    - id: _PROP_DOI
+    name: doi
+    descriptionMD: Work's doi identifier.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_TITLE
+    name: Title
+    descriptionMD: Work's title.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_PUBLICATION_YEAR
+    name: Publication year.
+    descriptionMD: Publication year
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_PUBLICATION_DATE
+    name: Publication date
+    descriptionMD: Publication date.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_PMID
+    name: PMID
+    descriptionMD: Pubmed identifier.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_PMCID
+    name: PMCID
+    descriptionMD: Pubmed Central Identifier.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_IS_OA
+    name: Is open-access?
+    descriptionMD: Indicates whether the work is open-access.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_OA_STATUS
+    name: Status of open-access.
+    descriptionMD: Open-access status. One of "gold", "green", "hybrid", "bronze" and "closed".
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_OA_URL
+    name: Open-access URL.
+    descriptionMD: URL to closest to open-access version of a work.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_IS_RETRACTED
+    name: Is the work retracted?
+    descriptionMD: Indicates whether the work is retracted.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
+    - id: _PROP_IS_PARATEXT
+    name: Is it paratext?
+    descriptionMD: Indicates whether the work is a paratext.
+    type: VALUE
+    mode: REC
+    importance: 5
+    appliesTo:
+      - entryType: _ET_WORK
 
+# RELATIONSHIPS
   - id: _PROP_ANCESTORS
     name: Ancestors
     descriptionMD: List of concepts that this concept descends from.
@@ -142,7 +277,6 @@ properties:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
     default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
-    
   - id: _PROP_RELATED_CONCEPTS
     name: Related concepts
     descriptionMD: Concepts that are similar to this one.
@@ -152,7 +286,6 @@ properties:
     appliesTo:
       - entryType: _ET_CONCEPT
     valueConstraint: x.type() = entryType("_ET_CONCEPT")
-
   - id: _PROP_PARENT_INSTITUTIONS
     name: Parents
     descriptionMD: List of parent institutions.
@@ -162,7 +295,6 @@ properties:
     appliesTo:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.type() = entryType("_ET_INSTITUTION")
-    
   - id: _PROP_CHILD_INSTITUTIONS
     name: Child institutions
     descriptionMD: List of child institutions.
@@ -173,7 +305,6 @@ properties:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.type() = entryType("_ET_INSTITUTION")
     default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
-
   - id: _PROP_RELATED_INSTITUTIONS
     name: Related institutions
     descriptionMD: List of related institutions.
@@ -183,7 +314,6 @@ properties:
     appliesTo:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.type() = entryType("_ET_INSTITUTION")
-
   - id: _PROP_LAST_KNOWN_INSTITUTION
     name: Last known institution
     descriptionMD: Last known associated instituion.
@@ -203,7 +333,15 @@ properties:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.type() = entryType("_ET_AUTHOR")
     default: 'this.reverse(prop=[[/prop/_PROP_LAST_KNOWN_INSTITUTION]])'
-
+  - id: _PROP_HOST_VENUE
+    name: Host venue
+    descriptionMD: A HostVenue object describing how and where this work is being hosted online.
+    type: RELATES_TO
+    mode: REC
+    importance: 0
+    appliesTo:
+      - entryType: _ET_WORK
+    valueConstraint: x.type() = entryType("_ET_VENUE")
   
 
 idMap:
@@ -234,4 +372,21 @@ idMap:
     _PROP_ROR: _40f9pqAoVezJMsluDEoX8R
     _PROP_COUNTRY_CODE: _1KL8Jd79CEYP4D0W2ae9jc
     _PROP_INSTITUTION_TYPE: _4ri7I2Si8KbBzj6Ao36cLH
+    _ET_VENUE: _5X3C4f0mDy9RKziLpP1Few
+    _PROP_ISSN_L: _6iPoU1dsJEyMK6Ui23FtC3
+    _PROP_ISSN: _6y3Gun1pkTNoe2F4mQ34i7
+    _PROP_COUNTS_BY_YEAR: _iuTgSAnr6HWgJcPGUt7FT
+    _PROP_WORKS_API_URL: _2lcWYtipXp6wruM1Euu0GT
+    _PROP_DOI: _3W6WCrZ6Q5gfWZI4oHdHOQ
+    _PROP_TITLE: _4jbPlGqe23uxRfDoWLH7MI
+    _PROP_PUBLICATION_YEAR: _2BGNyG50drPYgjTLIrEaSF
+    _PROP_PUBLICATION_DATE: _1VB9bSjlIEcscflCZW5HhL
+    _PROP_PMID: _1PGQimSDXfHUcWSiNTU2h0
+    _PROP_PMCID: _6wAsbN1UGoBs0ImFU9GJAJ
+    _PROP_IS_OA: _2OidkpKVLC8W5B3xjvJaH4
+    _PROP_OA_STATUS: _2SHHV1zaxkLuZDipZWsPqy
+    _PROP_OA_URL: _6nEVzwO5Dk5LfccIdecfy6
+    _PROP_IS_RETRACTED: _2cGjybttDOgsmm6kUe5rqx
+    _PROP_IS_PARATEXT: _13TQUi0GMmUCxX1HEdGuF8
+    
     

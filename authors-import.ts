@@ -65,45 +65,19 @@ export async function importAuthorToTheDatabase(author: Author) {
     if (author.last_known_institution) {
       // check if institution exists
       const institution_id = author.last_known_institution.id;
-      const institution_name = author.last_known_institution.display_name
-
-      let institution_vnid;
-      try {
-        const institution = await client.getEntry(institution_id);
-        institution_vnid = institution.id;
-
-      } catch (error) {
-        if (error instanceof api.NotFound) {
-          //  create institution stub
-          institution_vnid = VNID();
-          edits.push(
-            {
-              code: api.CreateEntry.code,
-              data: {
-                id: institution_vnid,
-                friendlyId: institution_id,
-                name: institution_name,
-                type: schema.institution, 
-                description: "",
-              },
-            },
-          );
-
-          // add included properties to last known institution stub entry
-          const addPropertyValueEditInst = addPropertyValueEdit(institution_vnid)
-          edits.concat(addPropertyValueEditInst(schema.ror, author.last_known_institution.ror));
-          edits.concat(addPropertyValueEditInst(schema.country_code, author.last_known_institution.country_code));
-          edits.concat(addPropertyValueEditInst(schema.institution_type, author.last_known_institution.type));
-        } else {
-          throw error;
-        }
-      }
+      const result = await findOrCreateEntry(institution_id, schema.institution, author.last_known_institution);
+      edits.concat(result.edits);
+      // add included properties to last known institution stub entry
+      const addPropertyValueEditInst = addPropertyValueEdit(result.neolaceId);
+      edits.concat(addPropertyValueEditInst(schema.ror, author.last_known_institution.ror));
+      edits.concat(addPropertyValueEditInst(schema.country_code, author.last_known_institution.country_code));
+      edits.concat(addPropertyValueEditInst(schema.institution_type, author.last_known_institution.type));
       // add creating the relationship to edits
       edits.concat(
         await updateRelatinoships(
           schema.last_known_institution, 
           neolaceId, 
-          new Set<VNID>().add(institution_vnid), 
+          new Set<VNID>().add(result.neolaceId), 
           isNewEntry
         )
       );

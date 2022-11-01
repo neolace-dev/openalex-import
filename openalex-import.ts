@@ -3,8 +3,10 @@ import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
 import { dirname } from "https://deno.land/std@0.125.0/path/mod.ts";
 import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
 import { Concept, importConceptToTheDatabase } from "./concept-import.ts"
-import { Institution, importInstitutionToTheDatabase } from "./institutions-import.ts"
+import { DehydratedInstitution, importInstitutionToTheDatabase } from "./institutions-import.ts"
 import { Author, importAuthorToTheDatabase } from "./authors-import.ts"
+import { Venue } from "./venue-import.ts"
+import { Work } from "./works-import.ts"
 
 import { api, VNID, getApiClient } from "./neolace-api-client.ts";
 type NominalType<T, K extends string> = T & { nominal: K };
@@ -18,7 +20,6 @@ const s3client = new S3Client({
   bucket: "openalex",
   pathStyle: false,
 });
-
 
 export const schema = {
   concept: VNID("_vj4bFX3CVAGMis4aiL4AJ"),
@@ -44,10 +45,26 @@ export const schema = {
   ror: VNID("_40f9pqAoVezJMsluDEoX8R"),
   country_code: VNID("_1KL8Jd79CEYP4D0W2ae9jc"),
   institution_type: VNID("_4ri7I2Si8KbBzj6Ao36cLH"),
+  venue: VNID("_5X3C4f0mDy9RKziLpP1Few"),
+  issn_l: VNID("_6iPoU1dsJEyMK6Ui23FtC3"),
+  issn: VNID("_6y3Gun1pkTNoe2F4mQ34i7"),
+  counts_by_year: VNID("_iuTgSAnr6HWgJcPGUt7FT"),
+  works_api_url: VNID("_2lcWYtipXp6wruM1Euu0GT"),
+  doi: VNID("_3W6WCrZ6Q5gfWZI4oHdHOQ"),
+  title: VNID("_4jbPlGqe23uxRfDoWLH7MI"),
+  publication_year: VNID("_2BGNyG50drPYgjTLIrEaSF"),
+  publication_date: VNID("_1VB9bSjlIEcscflCZW5HhL"),
+  pmid: VNID("_1PGQimSDXfHUcWSiNTU2h0"),
+  pmcid: VNID("_6wAsbN1UGoBs0ImFU9GJAJ"),
+  is_oa: VNID("_2OidkpKVLC8W5B3xjvJaH4"),
+  oa_status: VNID("_2SHHV1zaxkLuZDipZWsPqy"),
+  oa_url: VNID("_6nEVzwO5Dk5LfccIdecfy6"),
+  is_retracted: VNID("_2cGjybttDOgsmm6kUe5rqx"),
+  is_paratext: VNID("_13TQUi0GMmUCxX1HEdGuF8"),
 }
 
-type PropertyValue = string | number | undefined | string[];
-type Entity = Concept | Institution | Author | Venue | Work;
+type PropertyValue = string | number | undefined;
+type Entity = Concept | DehydratedInstitution | Author | Venue | Work;
 
 export async function findOrCreateEntry(entry_id: string, entity_type_id: VNID, entity: Entity): 
   Promise<{ 
@@ -74,8 +91,8 @@ export async function findOrCreateEntry(entry_id: string, entity_type_id: VNID, 
           data: {
             id: neolaceId,
             friendlyId: entry_id,
-            name: entity_type_id,
-            type: schema.concept, 
+            name: entity.display_name,
+            type: entity_type_id, 
             description: ("description" in entity && entity.description) || "",
           },
         },
@@ -157,6 +174,7 @@ async function getExistingRelationshipsOfType(relation_id: VNID, from_id: VNID):
   return rel_set;
 }
 
+//  TODO delete this function?
 export async function checkIfRelatinshipExists(relation_id: VNID, from_id: VNID, to_id: VNID): Promise<boolean> {
   let relationship_exists = false;
   const rel_list = await getExistingRelationshipsOfType(relation_id, from_id);
@@ -180,7 +198,7 @@ export function addPropertyValueEdit(
         data: {
           property: property_id,
           entry: neolaceId,
-          valueExpression: expression ? `${value}` : `"${value}"`,
+          valueExpression: (expression || typeof value == "number") ? `${value}` : `"${value}"`,
           propertyFactId: VNID(),
           note: "",
         },
@@ -228,9 +246,10 @@ async function import_entities(
   console.time("overall");
 
   for (const path of all_files) {
+    console.log(path);
     const curr_obj = await Deno.readFile(path);
     const curr_file = gunzip(curr_obj);
-    const curr_string = new TextDecoder().decode(curr_file);
+    const curr_string = new TextDecoder().decode(curr_file); // BUG deno bug occurs here
     const lines = curr_string.split('\n');
 
     let pendingPromises: Promise<void>[] = [];
@@ -265,6 +284,7 @@ function exist(path: string) {
 
 // await download_things('concepts')
 // await download_things('institutions')
+// await download_things('authors');
 // const maxLevel = 2;
 
 // for (let level = 0; level < maxLevel; level++) {
@@ -277,21 +297,54 @@ function exist(path: string) {
 //   );
 // }
 
-const country = "CA";
+// const country = "CA";
+// await import_entities(
+//   "institutions",
+//   importInstitutionToTheDatabase,
+//   (institution) => {
+//     return institution.country_code == country;
+//   }
+// )
+
+//  import authors associated to Canadian Institutions
+// await import_entities(
+//   "authors",
+//   importAuthorToTheDatabase,
+//   (_author) => {
+//     const author = _author as any as Author;
+//     if (author.last_known_institution) {
+//       if (author.last_known_institution.country_code == "CA") {
+//         return true;
+//       }
+//     }
+//     return false;
+//   }
+// )
+
 await import_entities(
-  "institutions",
-  importInstitutionToTheDatabase,
-  (institution) => {
-    return institution.country_code == country;
+  "concepts",
+  importConceptToTheDatabase,
+  (concept) => {
+    return concept.level == 2;
   }
 )
 
-// TODO authors by last known institution by country
-// await import_authors(
+
+
+
+//  import authors associated to Canadian Institutions
+// await import_entities(
 //   "authors",
-
+//   importAuthorToTheDatabase,
+//   (_author) => {
+//     const author = _author as any as Author;
+//     if (author.last_known_institution) {
+//       if (author.last_known_institution.country_code == "CA") {
+//         return true;
+//       }
+//     }
+//     return false;
+//   }
 // )
-
-
-
+// There are a total of 29.
 

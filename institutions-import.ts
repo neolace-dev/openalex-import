@@ -105,35 +105,18 @@ export async function importInstitutionToTheDatabase(institution: Institution) {
 
     for (const associated_institution of associated_institutions) {
       const ass_inst_id = associated_institution.id.split("/").pop() as string;
-      
-      let entry_vnid;
-      
-      try {
-        entry_vnid = (await client.getEntry(ass_inst_id)).id;
+      const result = await findOrCreateEntry(ass_inst_id, schema.institution, associated_institution);
+      const ass_inst_vnid = result.neolaceId;
+      edits.concat(result.edits);
+      const addPropertyValueEditInst = addPropertyValueEdit(ass_inst_vnid);
+      edits.concat(addPropertyValueEditInst(schema.ror, associated_institution.ror));
+      edits.concat(addPropertyValueEditInst(schema.country_code, associated_institution.country_code));
+      edits.concat(addPropertyValueEditInst(schema.institution_type, associated_institution.type));
 
-      } catch (error) {
-        if (error instanceof api.NotFound) {
-            //  create a new entry
-            entry_vnid = VNID();
-            edits.push({
-                    code: api.CreateEntry.code,
-                    data: {
-                        id: entry_vnid,
-                        friendlyId: ass_inst_id,
-                        name: associated_institution.display_name,
-                        type: schema.institution, 
-                        description: "",
-                    },
-                },
-            )
-        } else {
-          throw error;
-        }
-      }
       if (associated_institution.relationship == "parent") {
-        ass_inst_parent_set.add(entry_vnid);
+        ass_inst_parent_set.add(ass_inst_vnid);
       } else if (associated_institution.relationship == "related") {
-        ass_inst_related_set.add(entry_vnid);
+        ass_inst_related_set.add(ass_inst_vnid);
       }
     }
 
