@@ -56,7 +56,7 @@ properties:
     descriptionMD: The number of citations accumulated.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_AUTHOR
       - entryType: _ET_VENUE
@@ -89,7 +89,7 @@ properties:
     descriptionMD: The concept's SCOPUS page URL.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_AUTHOR
   - id: _PROP_UPDATED_DATE
@@ -109,7 +109,7 @@ properties:
     descriptionMD: The ORCID of the author.
     type: VALUE
     mode: REC
-    importance: 2
+    rank: 2
     appliesTo:
       - entryType: _ET_AUTHOR
   - id: _PROP_ROR
@@ -117,7 +117,7 @@ properties:
     descriptionMD: Research Organization Registry identifier
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_INSTITUTION
   - id: _PROP_COUNTRY_CODE
@@ -125,7 +125,7 @@ properties:
     descriptionMD: Country code
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_INSTITUTION
   - id: _PROP_INSTITUTION_TYPE
@@ -133,127 +133,127 @@ properties:
     descriptionMD: Institution type of eight used to characterize institutions by OpenAlex
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_INSTITUTION
-    - id: _PROP_ISSN_L
+  - id: _PROP_ISSN_L
     name: ISSN-L
     descriptionMD: The ISSN-L or Linking ISSN is a single canonical ISSN for all media versions of the title.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_VENUE
-    - id: _PROP_ISSN
+  - id: _PROP_ISSN
     name: ISSN
     descriptionMD: The list of ISSNs for this venue.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_VENUE
-    - id: _PROP_COUNTS_BY_YEAR
+  - id: _PROP_COUNTS_BY_YEAR
     name: Counts by year
     descriptionMD: List of works_count and cited_by_count for each of the last ten years, binned by year.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_VENUE
-    - id: _PROP_WORKS_API_URL
+  - id: _PROP_WORKS_API_URL
     name: Works api URL
     descriptionMD: LA URL that will get you a list of all this venue's Works.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_VENUE
-    - id: _PROP_DOI
+  - id: _PROP_DOI
     name: doi
     descriptionMD: Work's doi identifier.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_TITLE
+  - id: _PROP_TITLE
     name: Title
     descriptionMD: Work's title.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_PUBLICATION_YEAR
+  - id: _PROP_PUBLICATION_YEAR
     name: Publication year.
     descriptionMD: Publication year
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_PUBLICATION_DATE
+  - id: _PROP_PUBLICATION_DATE
     name: Publication date
     descriptionMD: Publication date.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_PMID
+  - id: _PROP_PMID
     name: PMID
     descriptionMD: Pubmed identifier.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_PMCID
+  - id: _PROP_PMCID
     name: PMCID
     descriptionMD: Pubmed Central Identifier.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_IS_OA
+  - id: _PROP_IS_OA
     name: Is open-access?
     descriptionMD: Indicates whether the work is open-access.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_OA_STATUS
+  - id: _PROP_OA_STATUS
     name: Status of open-access.
     descriptionMD: Open-access status. One of "gold", "green", "hybrid", "bronze" and "closed".
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_OA_URL
+  - id: _PROP_OA_URL
     name: Open-access URL.
     descriptionMD: URL to closest to open-access version of a work.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_IS_RETRACTED
+  - id: _PROP_IS_RETRACTED
     name: Is the work retracted?
     descriptionMD: Indicates whether the work is retracted.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
-    - id: _PROP_IS_PARATEXT
+  - id: _PROP_IS_PARATEXT
     name: Is it paratext?
     descriptionMD: Indicates whether the work is a paratext.
     type: VALUE
     mode: REC
-    importance: 5
+    rank: 5
     appliesTo:
       - entryType: _ET_WORK
 
@@ -292,7 +292,7 @@ properties:
     descriptionMD: List of parent institutions.
     type: RELATES_TO
     mode: REC
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
@@ -301,7 +301,7 @@ properties:
     descriptionMD: List of child institutions.
     type: RELATES_TO
     mode: AUTO
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
@@ -311,7 +311,7 @@ properties:
     descriptionMD: List of related institutions.
     type: RELATES_TO
     mode: REC
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
@@ -320,7 +320,7 @@ properties:
     descriptionMD: Last known associated instituion.
     type: RELATES_TO
     mode: REC
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_AUTHOR
     valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
@@ -329,7 +329,7 @@ properties:
     descriptionMD: Author associated with this institution.
     type: RELATES_TO
     mode: AUTO
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_INSTITUTION
     valueConstraint: x.entryType() = entryType("_ET_AUTHOR")
@@ -339,7 +339,7 @@ properties:
     descriptionMD: A HostVenue object describing how and where this work is being hosted online.
     type: RELATES_TO
     mode: REC
-    importance: 0
+    rank: 0
     appliesTo:
       - entryType: _ET_WORK
     valueConstraint: x.entryType() = entryType("_ET_VENUE")
