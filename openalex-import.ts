@@ -3,6 +3,7 @@ import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
 import { dirname } from "std/path/mod.ts";
 import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
 import { importConceptToTheDatabase } from "./concept-import.ts"
+import { api, getApiClient } from "./neolace-api-client.ts";
 
 const s3client = new S3Client({
   endPoint: "s3.amazonaws.com",
@@ -37,9 +38,16 @@ async function import_concepts() {
     all_files.push(...Array.from(Deno.readDirSync(`data/concepts/${date}`)).filter((e) => e.name.endsWith('.gz')).map((e) => `data/concepts/${date}/${e.name}`));
   });
 
+  const client = await getApiClient();
+  let pendingEdits: api.AnyBulkEdit[] = [];
+  const pushEdits = async () => {
+    await client.pushBulkEdits(pendingEdits, {connectionId: "openalex", createConnection: true});
+    pendingEdits = [];
+  }
+
   console.log(`There are a total of ${all_files.length}.`);
   console.time("overall");
-  for (let level = 0 ; level <= 2; level++) {
+  for (let level = 0 ; level <= 1; level++) {
     console.time(`level ${level}`);
     for (const path of all_files) {
       console.log(`Processing level ${level} entries in file at path ${path}`);
@@ -48,7 +56,6 @@ async function import_concepts() {
       const curr_string = new TextDecoder().decode(curr_file);
       const lines = curr_string.split('\n');
   
-      let pendingPromises: Promise<void>[] = [];
   
       for (const concept of lines) {
         if (concept.trim() == '') {
@@ -68,17 +75,16 @@ async function import_concepts() {
         }
         // console.log(json_concept);
         if (json_concept.level == level) {
-          pendingPromises.push(importConceptToTheDatabase(json_concept));
+          pendingEdits.push(...importConceptToTheDatabase(json_concept));
         }
-        if (pendingPromises.length > 5) {
-          await Promise.all(pendingPromises);
-          pendingPromises = [];
+        if (pendingEdits.length > 1) {
+          await pushEdits();
         }
       }
-      await Promise.all(pendingPromises);
     }
     console.timeEnd(`level ${level}`);
   }
+  await pushEdits();
   console.timeEnd("overall");
 }
 
