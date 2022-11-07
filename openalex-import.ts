@@ -40,51 +40,57 @@ async function import_concepts() {
 
   const client = await getApiClient();
   let pendingEdits: api.AnyBulkEdit[] = [];
+  let lastPromise: Promise<unknown>|undefined = undefined;
   const pushEdits = async () => {
-    await client.pushBulkEdits(pendingEdits, {connectionId: "openalex", createConnection: true});
-    pendingEdits = [];
+    if (lastPromise && (await promiseState(lastPromise)).status === "pending") {
+      console.log("Waiting for last bulk edit to complete...");
+      await lastPromise;
+    }
+    if (pendingEdits.length > 0) {
+      const newEditsToPush = [...pendingEdits];
+      console.log("Submitting", newEditsToPush.length, "edits...");
+      pendingEdits = [];
+      lastPromise = client.pushBulkEdits(newEditsToPush, {connectionId: "openalex", createConnection: true});
+    }
   }
 
-  console.log(`There are a total of ${all_files.length}.`);
+  console.log(`There are a total of ${all_files.length} files to process.`);
   console.time("overall");
-  for (let level = 0 ; level <= 1; level++) {
-    console.time(`level ${level}`);
-    for (const path of all_files) {
-      console.log(`Processing level ${level} entries in file at path ${path}`);
-      const curr_obj = await Deno.readFile(path);
-      const curr_file = gunzip(curr_obj);
-      const curr_string = new TextDecoder().decode(curr_file);
-      const lines = curr_string.split('\n');
-  
-  
-      for (const concept of lines) {
-        if (concept.trim() == '') {
-          continue;
-        }
-        let json_concept;
+  const maxLevel = 1;
+  for (const path of all_files) {
+    console.log(`Processing entries in file at path ${path}`);
+    const curr_obj = await Deno.readFile(path);
+    const curr_file = gunzip(curr_obj);
+    const curr_string = new TextDecoder().decode(curr_file);
+    const lines = curr_string.split('\n');
+
+    for (const concept of lines) {
+      if (concept.trim() == '') {
+        continue;
+      }
+      let json_concept;
+      try {
+        json_concept = JSON.parse(concept);
+      } catch {
         try {
-          json_concept = JSON.parse(concept);
-        } catch {
-          try {
-            // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
-            json_concept = JSON.parse(concept.replaceAll(`\\\\`, `\\`));
-          } catch (err) {
-            console.error(`JSON entity could not be parsed:\n`, concept);
-            throw err;
-          }
+          // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
+          json_concept = JSON.parse(concept.replaceAll(`\\\\`, `\\`));
+        } catch (err) {
+          console.error(`JSON entity could not be parsed:\n`, concept);
+          throw err;
         }
-        // console.log(json_concept);
-        if (json_concept.level == level) {
-          pendingEdits.push(...importConceptToTheDatabase(json_concept));
-        }
-        if (pendingEdits.length > 1) {
+      }
+      // console.log(json_concept);
+      if (json_concept.level <= maxLevel) {
+        pendingEdits.push(...importConceptToTheDatabase(json_concept));
+        if (pendingEdits.length > 1_000) {
           await pushEdits();
         }
       }
     }
-    console.timeEnd(`level ${level}`);
   }
   await pushEdits();
+  await lastPromise;
   console.timeEnd("overall");
 }
 
@@ -96,6 +102,18 @@ function exist(path: string) {
     return false;
   }
 }
+
+/** Check the state of a promise */
+function promiseState(promise: Promise<unknown>): Promise<{status: "fulfilled"|"rejected"|"pending", value?: unknown, reason?: unknown}> {
+  const pendingState = { status: "pending" as const };
+
+  return Promise.race([promise, pendingState]).then(
+    (value) =>
+      value === pendingState ? pendingState : { status: "fulfilled" as const, value },
+    (reason) => ({ status: "rejected" as const, reason }),
+  );
+}
+
 
 // await download_things('institutions')
 await import_concepts();
