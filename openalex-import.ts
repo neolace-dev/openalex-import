@@ -32,10 +32,10 @@ async function download_things(thing_type: string) {
 }
 
 async function import_concepts() {
-  const all_dates = Array.from(Deno.readDirSync('data/concepts')).filter((e) => e.name.startsWith('updated_date')).map((e) => e.name);
+  const all_dates = Array.from(Deno.readDirSync('data/concepts')).filter((e) => e.name.startsWith('updated_date')).map((e) => e.name).sort((a, b) => a.localeCompare(b));
   const all_files: string[] = [];
   all_dates.forEach((date) => {
-    all_files.push(...Array.from(Deno.readDirSync(`data/concepts/${date}`)).filter((e) => e.name.endsWith('.gz')).map((e) => `data/concepts/${date}/${e.name}`));
+    all_files.push(...Array.from(Deno.readDirSync(`data/concepts/${date}`)).filter((e) => e.name.endsWith('.gz')).map((e) => `data/concepts/${date}/${e.name}`).sort((a, b) => a.localeCompare(b)));
   });
 
   const client = await getApiClient();
