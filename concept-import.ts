@@ -65,7 +65,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
       {
         code: api.CreateEntry.code,
         data: {
-          id: neolaceId,
+          entryId: neolaceId,
           friendlyId: id,
           name: concept.display_name,
           type: VNID("_vj4bFX3CVAGMis4aiL4AJ"), // "Concept" entry type
@@ -77,7 +77,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
     //  set the wikidata id
     if (concept.wikidata) {
       edits.push({
-        code: "AddPropertyValue",
+        code: "AddPropertyFact",
         data: {
           propertyId: VNID("_63mbf1PWCiYQVs53ef3lcp"),
           entryId: neolaceId,
@@ -90,7 +90,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
 
     //  set the level
     edits.push({
-      code: "AddPropertyValue",
+      code: "AddPropertyFact",
       data: {
         propertyId: VNID("_3AyM6hRQL23PhhHZrboCYr"),
         entryId: neolaceId,
@@ -102,7 +102,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
 
     //  set the works count
     edits.push({
-      code: "AddPropertyValue",
+      code: "AddPropertyFact",
       data: {
         propertyId: VNID("_4OujpOZawdTunrjtSQrPcb"),
         entryId: neolaceId,
@@ -115,7 +115,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
     //  set the microsoft academic graph id
     if (concept.ids.mag) {
       edits.push({
-        code: "AddPropertyValue",
+        code: "AddPropertyFact",
         data: {
           propertyId: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
           entryId: neolaceId,
@@ -129,7 +129,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
     //  set the wikipedia id
     if (concept.ids.wikipedia) {
       edits.push({
-        code: "AddPropertyValue",
+        code: "AddPropertyFact",
         data: {
           propertyId: VNID("_468JDObMgV93qhEfHSAWnr"),
           entryId: neolaceId,
@@ -145,7 +145,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
     //  set the updated date
     if (concept.updated_date) {
       edits.push({
-        code: "AddPropertyValue",
+        code: "AddPropertyFact",
         data: {
           propertyId: VNID("_1M7JXgQKUfgSageiKdR82T"),
           entryId: neolaceId,
@@ -166,7 +166,7 @@ export async function importConceptToTheDatabase(concept: Concept) {
       const entry_vnid = (await client.getEntry(ancestor_id)).id;
 
       edits.push({
-        code: "AddPropertyValue",
+        code: "AddPropertyFact",
         data: {
           propertyId: VNID("_1uwLIPU2RI457BkrPs3rgM"), // "Parent Concept" property
           entryId: neolaceId,

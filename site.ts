@@ -5,10 +5,10 @@ import { dedent } from "neolace/lib/dedent.ts";
 import { UpdateSite } from "neolace/core/Site.ts";
 
 export const siteData: Partial<Parameters<typeof UpdateSite>[0]> = {
-    homePageMD: dedent`
+    homePageContent: dedent`
         This is an example of using OpenAlex data, e.g. see ["Computer Science" (concept)](/entry/C41008148)
     `,
-    footerMD: dedent`
+    footerContent: dedent`
         **About OpenAlex**: Learn more at [OpenAlex.org](https://openalex.org/)
 
         **Platform**: Powered by [Neolace](https://www.neolace.com/).

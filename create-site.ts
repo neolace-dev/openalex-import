@@ -1,4 +1,4 @@
-#!/usr/bin/env deno run --import-map=import_map.json --allow-net --allow-read --allow-env --unstable --no-check
+#!/usr/bin/env deno run --allow-net --allow-read --allow-env --no-check
 /**
  * Create OpenAlex demo site, which is accessible at
  * http://openalex.local.neolace.net:5555/

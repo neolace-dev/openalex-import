@@ -1,6 +1,6 @@
-#!/usr/bin/env deno run --import-map=import_map.json --allow-net --allow-read --allow-write --allow-env --unstable --no-check
+#!/usr/bin/env deno run --allow-net --allow-read --allow-write --allow-env --no-check
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
-import { dirname } from "https://deno.land/std@0.125.0/path/mod.ts";
+import { dirname } from "std/path/mod.ts";
 import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
 import { importConceptToTheDatabase } from "./concept-import.ts"
 
