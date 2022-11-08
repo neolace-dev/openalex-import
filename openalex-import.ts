@@ -17,12 +17,10 @@ const s3client = new S3Client({
 
 async function download_things(thing_type: string) {
   for await (const obj of s3client.listObjects({ prefix: `data/${thing_type}/` })) {
-    if (obj.key.endsWith('manifest')) {
-      continue;
-    }
     const local_path = obj.key;
     Deno.mkdirSync(dirname(local_path), {recursive: true});
-    if (exist(local_path)) {
+    const forceOverwrite: boolean = obj.key.endsWith('manifest');
+    if (exist(local_path) &&!forceOverwrite) {
       continue;
     }
     console.log(`Downloading ${local_path}`);
