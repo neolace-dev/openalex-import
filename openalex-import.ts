@@ -53,8 +53,8 @@ async function import_concepts() {
   }
 
   console.log(`There are a total of ${all_files.length} files to process.`);
-  console.time("overall");
-  const maxLevel = 1;
+  const startTime = performance.now();
+  const maxLevel = 10;
   for (const path of all_files) {
     console.log(`Processing entries in file at path ${path}`);
     const curr_obj = await Deno.readFile(path);
@@ -89,7 +89,8 @@ async function import_concepts() {
   }
   await pushEdits();
   await lastPromise;
-  console.timeEnd("overall");
+  const totalTimeMs = performance.now() - startTime;
+  console.log("Took: ", Math.round(totalTimeMs / 1_000), "s");
 }
 
 function exist(path: string) {
