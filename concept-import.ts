@@ -101,7 +101,9 @@ export function importConceptToTheDatabase(concept: Concept): api.AnyBulkEdit[] 
             //  set the updated date
             {
               propertyId: VNID("_1M7JXgQKUfgSageiKdR82T"),
-              facts: concept.updated_date ? [{valueExpression: `date("${concept.updated_date}")`}] : []
+              // Note: some "updated_date" are actually updated_datetime values like "2022-10-09T09:37:13.298106"
+              // but since we don't support datetimes yet, we strip off the time information.
+              facts: concept.updated_date ? [{valueExpression: `date("${concept.updated_date.substring(0,10)}")`}] : []
             },
           ],
         },
