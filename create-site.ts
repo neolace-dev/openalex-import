@@ -19,20 +19,19 @@ const graph = await getGraph();
 log.info("Checking users and site...");
 
 // Create "Braden" for initial content, if it doesn't already exist
-const {id: adminUserId} = await graph.pullOne(User, u => u.id, {key: "user-admin"});
+const {id: adminUserId} = await graph.pullOne(User, u => u.id, {with: {username: "admin"}});
 
 // Create the "OpenAlex" site:
-const {id: siteId} = await graph.pullOne(Site, s => s.id, {key: "site-openalex"}).catch(err =>{
+const {id: siteId} = await graph.pullOne(Site, s => s.id, {with: {friendlyId: "openalex"}}).catch(err =>{
     if (!(err instanceof EmptyResultError)) { throw err; }
     return graph.runAsSystem(CreateSite({
         id: VNID("_siteOPENALEX"),
         name: "OpenAlex",
         domain: "openalex.local.neolace.net",
-        slugId: `site-openalex`,
-        siteCode: "OPENA",
+        friendlyId: `openalex`,
         adminUser: adminUserId,
     }));
 });
 
-await graph.runAsSystem(UpdateSite({key: siteId, ...siteData}));
+await graph.runAsSystem(UpdateSite({id: siteId, ...siteData}));
 await shutdown();
