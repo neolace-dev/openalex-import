@@ -1,4 +1,4 @@
-import { api, getApiClient, VNID } from "./neolace-api-client.ts";
+import { api, VNID } from "./neolace-api-client.ts";
 
 export interface Concept {
   "id": string;
@@ -44,144 +44,100 @@ export interface Concept {
   "updated_date"?: string;
 }
 
-export async function importConceptToTheDatabase(concept: Concept) {
-    const client = await getApiClient();
-    const id = concept.id.split("/").pop() as string;
-    try {
-      await client.getEntry(id);
-      console.log(`   entry ${id} already exists.`);  // FIXME: This should actually overwrite/update the entry in this case; not just skip it.
-      return;
-    } catch (error) {
-      if (error instanceof api.NotFound) {
-        //  this is good we have to create the entry.
-      } else {
-        throw error;
-      }
-    }
+const conceptEntryTypeId = VNID("_vj4bFX3CVAGMis4aiL4AJ");
 
-    //  create a new entry
-    const neolaceId = VNID();
-    const edits: api.AnyContentEdit[] = [
+const stripUrlFromId = (url: string) => url.split("/").pop()!;
+
+export function importConceptToTheDatabase(concept: Concept): api.AnyBulkEdit[] {
+    const id = stripUrlFromId(concept.id);
+
+    // Generate the "bulk edits" to create/update this concept:
+    const edits: api.AnyBulkEdit[] = [
       {
-        code: api.CreateEntry.code,
+        code: "UpsertEntryByFriendlyId",
         data: {
-          entryId: neolaceId,
-          friendlyId: id,
-          name: concept.display_name,
-          type: VNID("_vj4bFX3CVAGMis4aiL4AJ"), // "Concept" entry type
-          description: concept.description ?? "",
+          where: {
+            friendlyId: id,
+            entryTypeId: conceptEntryTypeId,
+          },
+          set: {
+            name: concept.display_name,
+            description: concept.description ?? "",
+          },
+        },
+      },
+      {
+        code: "SetPropertyFacts",
+        data: {
+          entryWith: { friendlyId: id },
+          set: [
+            // Wikidata ID:
+            {
+              propertyId: VNID("_63mbf1PWCiYQVs53ef3lcp"), // Wikidata ID
+              facts: concept.wikidata ? [{valueExpression: `"${concept.wikidata.split("/").pop()}"`}] : []
+            },
+            // Level:
+            {
+              propertyId: VNID("_3AyM6hRQL23PhhHZrboCYr"), // Level
+              facts: [{ valueExpression: `${concept.level}` }]
+            },
+            // Works count:
+            {
+              propertyId: VNID("_4OujpOZawdTunrjtSQrPcb"),
+              facts: [{ valueExpression: `${concept.works_count}` }]
+            },
+            //  set the microsoft academic graph id
+            {
+              propertyId: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
+              facts: concept.ids.mag ? [{valueExpression: `"${concept.ids.mag}"`}] : []
+            },
+            //  set the wikipedia id
+            {
+              propertyId: VNID("_468JDObMgV93qhEfHSAWnr"),
+              facts: concept.ids.wikipedia ? [{valueExpression: `"${
+                (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
+              }"`}] : []
+            },
+            //  set the updated date
+            {
+              propertyId: VNID("_1M7JXgQKUfgSageiKdR82T"),
+              // Note: some "updated_date" are actually updated_datetime values like "2022-10-09T09:37:13.298106"
+              // but since we don't support datetimes yet, we strip off the time information.
+              facts: concept.updated_date ? [{valueExpression: `date("${concept.updated_date.substring(0,10)}")`}] : []
+            },
+          ],
         },
       },
     ];
 
-    //  set the wikidata id
-    if (concept.wikidata) {
-      edits.push({
-        code: "AddPropertyFact",
-        data: {
-          propertyId: VNID("_63mbf1PWCiYQVs53ef3lcp"),
-          entryId: neolaceId,
-          valueExpression: `"${concept.wikidata.split("/").pop()}"`,
-          propertyFactId: VNID(),
-          note: "",
+    const parents = (concept.ancestors ?? []).filter((a: {level: number}) => a.level === concept.level - 1);
+
+    // Make sure the parents exist:
+    for (const parent of parents) {
+      edits.push({code: "UpsertEntryByFriendlyId", data: {
+        where: { entryTypeId: conceptEntryTypeId, friendlyId: stripUrlFromId(parent.id) },
+        setOnCreate: {
+          // Only set these if the entry doesn't yet exist; otherwise use whatever values it already has.
+          name: parent.display_name,
         },
-      });
+      }});
     }
 
-    //  set the level
-    edits.push({
-      code: "AddPropertyFact",
-      data: {
-        propertyId: VNID("_3AyM6hRQL23PhhHZrboCYr"),
-        entryId: neolaceId,
-        valueExpression: `"${concept.level}"`,
-        propertyFactId: VNID(),
-        note: "",
+    // Set the parents:
+    edits.push(
+      {
+        code: "SetRelationships",
+        data: {
+          entryWith: { friendlyId: id },
+          set: [
+            {
+              propertyId: VNID("_1uwLIPU2RI457BkrPs3rgM"), // "Parent Concept" property
+              toEntries: parents.map((parent) => ({ entryWith: { friendlyId: stripUrlFromId(parent.id) } })),
+            }
+          ],
+        },
       },
-    });
-
-    //  set the works count
-    edits.push({
-      code: "AddPropertyFact",
-      data: {
-        propertyId: VNID("_4OujpOZawdTunrjtSQrPcb"),
-        entryId: neolaceId,
-        valueExpression: `"${concept.works_count}"`,
-        propertyFactId: VNID(),
-        note: "",
-      },
-    });
-
-    //  set the microsoft academic graph id
-    if (concept.ids.mag) {
-      edits.push({
-        code: "AddPropertyFact",
-        data: {
-          propertyId: VNID("_1i2GXNofq5YEgaA3R9F4KN"),
-          entryId: neolaceId,
-          valueExpression: `"${concept.ids.mag}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
-    }
-
-    //  set the wikipedia id
-    if (concept.ids.wikipedia) {
-      edits.push({
-        code: "AddPropertyFact",
-        data: {
-          propertyId: VNID("_468JDObMgV93qhEfHSAWnr"),
-          entryId: neolaceId,
-          valueExpression: `"${
-            (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
-          }"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
-    }
-
-    //  set the updated date
-    if (concept.updated_date) {
-      edits.push({
-        code: "AddPropertyFact",
-        data: {
-          propertyId: VNID("_1M7JXgQKUfgSageiKdR82T"),
-          entryId: neolaceId,
-          valueExpression: `"${concept.updated_date}"`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
-    }
-
-    // deno-lint-ignore no-explicit-any
-    const parents = (concept.ancestors ?? []).filter((a: any) =>
-      a.level === concept.level - 1
     );
-
-    for (const ancestor of parents) {
-      const ancestor_id = ancestor.id.split("/").pop() as string;
-      const entry_vnid = (await client.getEntry(ancestor_id)).id;
-
-      edits.push({
-        code: "AddPropertyFact",
-        data: {
-          propertyId: VNID("_1uwLIPU2RI457BkrPs3rgM"), // "Parent Concept" property
-          entryId: neolaceId,
-          valueExpression: `entry("${entry_vnid}")`,
-          propertyFactId: VNID(),
-          note: "",
-        },
-      });
-    }
-
-    const { id: draftId } = await client.createDraft({
-      title: "import concept",
-      description: "",
-      edits,
-    });
-    await client.acceptDraft(draftId);
+    return edits;
 }
 
