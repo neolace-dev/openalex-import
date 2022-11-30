@@ -1,14 +1,14 @@
-import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { DehydratedInstitution } from "./institutions-import.ts"
-import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
-type NominalType<T, K extends string> = T & { nominal: K };
-type VNID = NominalType<string, "VNID">;
+import { api } from "./neolace-api-client.ts";
+import { DehydratedInstitution } from "./institutions-import.ts";
+import { schema } from "./schema.ts";
+import { getIdFromUrl, getIdFromUrlIfSet, getWikipediaIdFromUrl, setDateProperty, setIntegerProperty, setStringProperty } from "./utils.ts";
 
 export interface DehydratedAuthor {
   "id": string;
   "orcid"?: string;
   "display_name": string;  
 }
+
 export interface Author extends DehydratedAuthor {
   "display_name_alternatives"?: string[]; // TODO add 
   "works_count": number;
@@ -16,8 +16,8 @@ export interface Author extends DehydratedAuthor {
   "ids": {
     "openalex": string;
     "orcid"?: string;
-    "mag"?: number;
-    "twitter"?: string; //TODO ADD
+    "mag"?: string;
+    "twitter"?: string; // TODO: ADD
     "wikipedia"?: string;
     "scopus"?: string;
   };
@@ -32,62 +32,69 @@ export interface Author extends DehydratedAuthor {
   "updated_date"?: string;
 }
 
-export async function importAuthorToTheDatabase(author: Author) {
-    const client = await getApiClient();
-    const id = author.id.split("/").pop() as string;
-    //  find or create a new entry
-    const edits: api.AnyContentEdit[] = [];
-    const result = await findOrCreateEntry(id, schema.author, author);
-    edits.concat(result.edits);
-    const neolaceId = result.neolaceId;
-    const isNewEntry = result.isNewEntry;
+const entryTypeKey = schema.author;
 
-    // const schema = await (await client.getSiteSchema("openalex"));
-    // Object.values(schema.properties)
+export function importAuthor(author: Author): api.AnyBulkEdit[] {
+    const entryKey = getIdFromUrl(author.id);
 
-    const addPropertyForAuthor = addPropertyValueEdit(neolaceId)
+    // Generate the "bulk edits" to create/update this concept:
+    const edits: api.AnyBulkEdit[] = [
+      {
+        code: "UpsertEntryByKey",
+        data: {
+          where: { entryKey, entryTypeKey },
+          set: {
+            name: author.display_name,
+          },
+        },
+      },
+      {
+        code: "SetPropertyFacts",
+        data: {
+          entryWith: { entryKey },
+          set: [
+            // ORCID:
+            setStringProperty(schema.orcid, getIdFromUrlIfSet(author.orcid)),
+            // Works count
+            setIntegerProperty(schema.works_count, author.works_count),
+            // Cited by count
+            setIntegerProperty(schema.cited_by_count, author.cited_by_count),
+            // MAG ID:
+            setIntegerProperty(schema.mag_id, author.ids.mag ? parseInt(author.ids.mag, 10) : undefined),
+            // Wikipedia ID:
+            setStringProperty(schema.wikipedia_id, getWikipediaIdFromUrl(author.ids.wikipedia)),
+            // Scopus Author ID, e.g. "http://www.scopus.com/inward/authorDetails.url?authorID=36455008000&partnerID=MN8TOARS"
+            setStringProperty(schema.scopus_id, author.ids.scopus ? new URL("author.ids.scopus").searchParams.get("authorID")! : undefined),
+            //  set the updated date
+            setDateProperty(schema.updated_date, author.updated_date),
+          ],
+        },
+      },
+    ];
 
-    edits.concat(addPropertyForAuthor(schema.orcid, author.orcid));
-    edits.concat(addPropertyForAuthor(schema.works_count, author.works_count));
-    edits.concat(addPropertyForAuthor(schema.cited_by_count, author.cited_by_count));
-    edits.concat(addPropertyForAuthor(schema.mag_id, author.ids.mag));
-    if (author.ids.wikipedia) {
-      edits.concat(
-        addPropertyForAuthor(schema.wikipedia_id, 
-          (author.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
-        )
-      );
-    }
-    edits.concat(addPropertyForAuthor(schema.scopus_id, author.ids.scopus));
-    edits.concat(addPropertyForAuthor(schema.updated_date, author.updated_date));
 
     // link the last known institution
     if (author.last_known_institution) {
-      // check if institution exists
-      const institution_id = author.last_known_institution.id;
-      const result = await findOrCreateEntry(institution_id, schema.institution, author.last_known_institution);
-      edits.concat(result.edits);
-      // add included properties to last known institution stub entry
-      const addPropertyValueEditInst = addPropertyValueEdit(result.neolaceId);
-      edits.concat(addPropertyValueEditInst(schema.ror, author.last_known_institution.ror));
-      edits.concat(addPropertyValueEditInst(schema.country_code, author.last_known_institution.country_code));
-      edits.concat(addPropertyValueEditInst(schema.institution_type, author.last_known_institution.type));
-      // add creating the relationship to edits
-      edits.concat(
-        await updateRelatinoships(
-          schema.last_known_institution, 
-          neolaceId, 
-          new Set<VNID>().add(result.neolaceId), 
-          isNewEntry
-        )
-      );
+      // Make sure the last known institution exists:
+      const institutionKey = getIdFromUrl(author.last_known_institution.id);
+      edits.push({code: "UpsertEntryByKey", data: {
+        where: { entryTypeKey: schema.institution, entryKey: institutionKey },
+        setOnCreate: {
+          name: author.last_known_institution.display_name,
+        },
+      }});
+      // Then link it to this author:
+      edits.push({code: "SetRelationships", data: {
+        entryWith: { entryKey },
+        set: [
+          {
+            propertyKey: schema.last_known_institution,
+            toEntries: [{entryWith: {entryKey: institutionKey}}],
+          }
+        ],
+      }});
     }
     
-    const { id: draftId } = await client.createDraft({
-      title: "import concept",
-      description: "",
-      edits,
-    });
-    await client.acceptDraft(draftId);
+    return edits;
 }
 

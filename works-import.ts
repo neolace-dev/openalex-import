@@ -1,11 +1,8 @@
-import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { Institution, InstitutionType, DehydratedInstitution } from "./institutions-import.ts"
+import { api } from "./neolace-api-client.ts";
+import { DehydratedInstitution } from "./institutions-import.ts"
 import { DehydratedAuthor } from "./authors-import.ts"
-import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
 import { DehydratedVenue } from "./venue-import.ts"
 import { DehydratedConcept } from "./concept-import.ts"
-type NominalType<T, K extends string> = T & { nominal: K };
-type VNID = NominalType<string, "VNID">;
 
 interface Authorship extends DehydratedAuthor {
     "author_position": "first" | "middle" | "last";
@@ -74,29 +71,6 @@ export interface Work {
     "created_date"?: string;
 }
 
-export async function importVanueToDatabase(work: Work) {
-    const client = await getApiClient();
-    const edits: api.AnyContentEdit[] = [];
-    let id;
-    if (work.id) {
-        id = work.id.split("/").pop() as string;
-    } else {
-        throw Error("ID is absent.");
-    }
-
-    const result = await findOrCreateEntry(id, schema.venue, work);
-    edits.concat(result.edits);
-    const neolaceId = result.neolaceId;
-    const isNewEntry = result.isNewEntry;
-
-    const addPropertyForVenue = addPropertyValueEdit(neolaceId);
-
-    edits.concat(addPropertyForVenue(schema.doi, work.doi));
-
-    const { id: draftId } = await client.createDraft({
-        title: "import concept",
-        description: "",
-        edits,
-      });
-      await client.acceptDraft(draftId);
+export function importWork(_work: Work): api.AnyBulkEdit[] {
+    throw new Error("Not implemented yet.");
 }

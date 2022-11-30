@@ -1,7 +1,6 @@
-import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
-type NominalType<T, K extends string> = T & { nominal: K };
-type VNID = NominalType<string, "VNID">;
+import { api } from "./neolace-api-client.ts";
+import { schema } from "./schema.ts";
+import { getIdFromUrl, getIdFromUrlIfSet, getWikipediaIdFromUrl, setDateProperty, setIntegerProperty, setStringProperty } from "./utils.ts";
 
 export enum InstitutionType {
     education = "education",
@@ -68,74 +67,79 @@ export interface Institution extends DehydratedInstitution {
     "created_date"?: string;
 }
 
-export async function importInstitutionToTheDatabase(institution: Institution) {
-    const client = await getApiClient();
-    const edits: api.AnyContentEdit[] = [];
-    const id = institution.id.split("/").pop() as string;
-
-    const result = await findOrCreateEntry(id, schema.institution, institution);
-    edits.concat(result.edits);
-    const neolaceId = result.neolaceId;
-    const isNewEntry = result.isNewEntry;
-
-    const addPropertyForAuthor = addPropertyValueEdit(neolaceId)
-
-    if (institution.ids.wikidata) {
-      edits.concat(addPropertyForAuthor(schema.wikidata, institution.ids.wikidata.split("/").pop()));
-    }
-    edits.concat(addPropertyForAuthor(schema.works_count, institution.works_count));
-    edits.concat(addPropertyForAuthor(schema.mag_id, institution.ids.mag));
-    if (institution.ids.wikipedia) {
-      edits.concat(
-        addPropertyForAuthor(
-          schema.wikipedia_id, 
-          (institution.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
-        )
-      );
-    }
-    edits.concat(addPropertyForAuthor(schema.updated_date, institution.updated_date));
-    edits.concat(addPropertyForAuthor(schema.ror, institution.ids.ror));
-    edits.concat(addPropertyForAuthor(schema.country_code, institution.geo.country_code));
-    edits.concat(addPropertyForAuthor(schema.institution_type, institution.type));
+export function importInstitution(institution: Institution): api.AnyBulkEdit[] {
+    const entryKey = getIdFromUrl(institution.id);
+  
+    const edits: api.AnyBulkEdit[] = [
+      {
+        code: "UpsertEntryByKey",
+        data: {
+          where: { entryTypeKey: schema.institution, entryKey },
+          set: { name: institution.display_name },
+        }
+      },
+      {
+        code: "SetPropertyFacts",
+        data: {
+          entryWith: { entryKey },
+          set: [
+            // Wikidata ID:
+            setStringProperty(schema.wikidata, getIdFromUrlIfSet(institution.ids.wikidata)),
+            // MAG ID:
+            setIntegerProperty(schema.mag_id, institution.ids.mag ? parseInt(institution.ids.mag, 10) : undefined),
+            // ROR (Research Organization Registry) ID:
+            setStringProperty(schema.ror, getIdFromUrlIfSet(institution.ids.ror)),
+            // Country code:
+            setStringProperty(schema.country_code, institution.geo.country_code),
+            // Institution Type
+            setStringProperty(schema.institution_type, institution.type),
+            // Works count:
+            setIntegerProperty(schema.works_count, institution.works_count),
+            //  set the wikipedia id
+            setStringProperty(schema.wikipedia_id, getWikipediaIdFromUrl(institution.ids.wikipedia)),
+            //  set the updated date
+            setDateProperty(schema.updated_date, institution.updated_date),
+          ],
+        },
+      }
+    ];
 
     const associated_institutions = (institution.associated_institutions ?? []);
 
-    const ass_inst_parent_set = new Set<VNID>();
-    const ass_inst_related_set = new Set<VNID>();
+    const parentInstKeys: string[] = [];
+    const relatedInstKeys: string[] = [];
 
     for (const associated_institution of associated_institutions) {
-      const ass_inst_id = associated_institution.id.split("/").pop() as string;
-      const result = await findOrCreateEntry(ass_inst_id, schema.institution, associated_institution);
-      const ass_inst_vnid = result.neolaceId;
-      edits.concat(result.edits);
-      const addPropertyValueEditInst = addPropertyValueEdit(ass_inst_vnid);
-      edits.concat(addPropertyValueEditInst(schema.ror, associated_institution.ror));
-      edits.concat(addPropertyValueEditInst(schema.country_code, associated_institution.country_code));
-      edits.concat(addPropertyValueEditInst(schema.institution_type, associated_institution.type));
+      const associatedInstKey = getIdFromUrl(associated_institution.id);
+      // Make sure this associated institution exists:
+      edits.push({code: "UpsertEntryByKey", data: {
+        where: { entryTypeKey: schema.institution, entryKey: associatedInstKey },
+        setOnCreate: { name: associated_institution.display_name },
+      }});
 
       if (associated_institution.relationship == "parent") {
-        ass_inst_parent_set.add(ass_inst_vnid);
+        parentInstKeys.push(associatedInstKey);
       } else if (associated_institution.relationship == "related") {
-        ass_inst_related_set.add(ass_inst_vnid);
+        relatedInstKeys.push(associatedInstKey);
       }
     }
+    // Now set the relationships:
+    edits.push({ code: "SetRelationships", data: {
+        entryWith: { entryKey },
+        set: [{
+            propertyKey: schema.parent_institutions,
+            toEntries: parentInstKeys.map((parentKey) => ({ entryWith: { entryKey: parentKey } })),
+          }
+        ],
+    }});
+    edits.push({ code: "SetRelationships", data: {
+        entryWith: { entryKey },
+        set: [{
+            propertyKey: schema.related_institutions,
+            toEntries: relatedInstKeys.map((parentKey) => ({ entryWith: { entryKey: parentKey } })),
+          }
+        ],
+    }});
 
-    edits.concat(
-      await updateRelatinoships(schema.parent_institutions, neolaceId, ass_inst_parent_set, isNewEntry)
-    );
-    edits.concat(
-      await updateRelatinoships(schema.related_institutions, neolaceId, ass_inst_related_set, isNewEntry)
-    );
-
-    const { id: draftId } = await client.createDraft({
-      title: "import concept",
-      description: "",
-      edits,
-    });
-
-    try {
-      await client.acceptDraft(draftId);
-    } catch {
-      console.log(edits)
-    }
+    return edits;
 }

@@ -1,394 +1,345 @@
 entryTypes:
-  - id: _ET_CONCEPT
+  - key: concept
     name: Concept
     description: An OpenAlex Concept
-    friendlyIdPrefix: C
+    keyPrefix: C
     enabledFeatures: {}
-  - id: _ET_INSTITUTION
+  - key: institution
     name: Institution
     description: An OpenAlex Institution
-    friendlyIdPrefix: I
+    keyPrefix: I
     enabledFeatures: {}
-  - id: _ET_AUTHOR
+  - key: author
     name: Author
     description: An OpenAlex Author
-    friendlyIdPrefix: A
+    keyPrefix: A
     enabledFeatures: {}
-  - id: _ET_VENUE
+  - key: venue
     name: Venue
     description: An OpenAlex Venue
-    friendlyIdPrefix: V
+    keyPrefix: V
     enabledFeatures: {}
 properties:
 
 #  NON-RELATIONSHIPS
-  - id: _PROP_WIKIDATA
+  - key: wikidata-id
     name: Wikidata
-    descriptionMD: The Wikidata ID for this concept. 
+    description: The Wikidata ID for this concept. 
     type: VALUE
     mode: REC
     rank: 3
     appliesTo:
-      - entryType: _ET_CONCEPT
-      - entryType: _ET_INSTITUTION
+      - entryTypeKey: concept
+      - entryTypeKey: institution
     displayAs: "[{value}](https://www.wikidata.org/wiki/{value})"
-  - id: _PROP_LEVEL
+  - key: level
     name: Level
-    descriptionMD: The level in the concept tree where this concept lives.
+    description: The level in the concept tree where this concept lives.
     type: VALUE
     mode: REC
     rank: 2
     appliesTo:
-      - entryType: _ET_CONCEPT
-  - id: _PROP_WORKS_COUNT
+      - entryTypeKey: concept
+  - key: works-count
     name: Works Count
-    descriptionMD: The number of works tagged with this concept.
+    description: The number of works tagged with this concept.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_CONCEPT
-      - entryType: _ET_INSTITUTION
-      - entryType: _ET_AUTHOR
-      - entryType: _ET_VENUE
-  - id: _CITED_BY_COUNT
+      - entryTypeKey: concept
+      - entryTypeKey: institution
+      - entryTypeKey: author
+      - entryTypeKey: venue
+  - key: cited-by-count
     name: Cited By Count
-    descriptionMD: The number of citations accumulated.
+    description: The number of citations accumulated.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_AUTHOR
-      - entryType: _ET_VENUE
-      - entryType: _ET_WORK
-  - id: _PROP_MAG_ID
+      - entryTypeKey: author
+      - entryTypeKey: venue
+      - entryTypeKey: _ET_WORK
+  - key: mag-id
     name: MAG ID
-    descriptionMD: Microsoft Academic Graph ID.
+    description: Microsoft Academic Graph ID.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_INSTITUTION
-      - entryType: _ET_CONCEPT
-      - entryType: _ET_AUTHOR
-      - entryType: _ET_VENUE
-      - entryType: _ET_WORK
-  - id: _PROP_WIKIPEDIA_ID
+      - entryTypeKey: institution
+      - entryTypeKey: concept
+      - entryTypeKey: author
+      - entryTypeKey: venue
+      - entryTypeKey: _ET_WORK
+  - key: wikipedia-id
     name: Wikipedia ID
-    descriptionMD: The concept's Wikipedia page URL.
+    description: The concept's Wikipedia page URL.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_INSTITUTION
-      - entryType: _ET_CONCEPT
-      - entryType: _ET_AUTHOR
+      - entryTypeKey: institution
+      - entryTypeKey: concept
+      - entryTypeKey: author
     displayAs: "[{value}](https://en.wikipedia.org/wiki/{value})"
-  - id: _PROP_SCOPUS_ID
+  - key: scopus-id
     name: SCOPUS ID
-    descriptionMD: The concept's SCOPUS page URL.
+    description: The concept's SCOPUS page URL.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_AUTHOR
-  - id: _PROP_UPDATED_DATE
+      - entryTypeKey: author
+  - key: updated-date
     name: Updated date
-    descriptionMD: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
+    description: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_INSTITUTION
-      - entryType: _ET_CONCEPT
-      - entryType: _ET_AUTHOR
-      - entryType: _ET_VENUE
-      - entryType: _ET_WORK
-  - id: _PROP_ORCID
+      - entryTypeKey: institution
+      - entryTypeKey: concept
+      - entryTypeKey: author
+      - entryTypeKey: venue
+      - entryTypeKey: _ET_WORK
+  - key: orcid
     name: ORCID
-    descriptionMD: The ORCID of the author.
+    description: The ORCID of the author.
     type: VALUE
     mode: REC
     rank: 2
     appliesTo:
-      - entryType: _ET_AUTHOR
-  - id: _PROP_ROR
+      - entryTypeKey: author
+  - key: ror-id
     name: ROR ID
-    descriptionMD: Research Organization Registry identifier
+    description: Research Organization Registry identifier
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_INSTITUTION
-  - id: _PROP_COUNTRY_CODE
+      - entryTypeKey: institution
+  - key: country-code
     name: Country code
-    descriptionMD: Country code
+    description: Country code
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_INSTITUTION
-  - id: _PROP_INSTITUTION_TYPE
+      - entryTypeKey: institution
+  - key: institution-type
     name: Institution type
-    descriptionMD: Institution type of eight used to characterize institutions by OpenAlex
+    description: Institution type of eight used to characterize institutions by OpenAlex
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_INSTITUTION
-  - id: _PROP_ISSN_L
+      - entryTypeKey: institution
+  - key: issn-l
     name: ISSN-L
-    descriptionMD: The ISSN-L or Linking ISSN is a single canonical ISSN for all media versions of the title.
+    description: The ISSN-L or Linking ISSN is a single canonical ISSN for all media versions of the title.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_VENUE
-  - id: _PROP_ISSN
+      - entryTypeKey: venue
+  - key: issn
     name: ISSN
-    descriptionMD: The list of ISSNs for this venue.
+    description: The list of ISSNs for this venue.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_VENUE
-  - id: _PROP_COUNTS_BY_YEAR
-    name: Counts by year
-    descriptionMD: List of works_count and cited_by_count for each of the last ten years, binned by year.
-    type: VALUE
-    mode: REC
-    rank: 5
-    appliesTo:
-      - entryType: _ET_VENUE
-  - id: _PROP_WORKS_API_URL
+      - entryTypeKey: venue
+  # - key: counts-by-year
+  #   name: Counts by year
+  #   description: List of works_count and cited_by_count for each of the last ten years, binned by year.
+  #   type: VALUE
+  #   mode: REC
+  #   rank: 5
+  #   appliesTo:
+  #     - entryTypeKey: venue
+  - key: works-api-url
     name: Works api URL
-    descriptionMD: LA URL that will get you a list of all this venue's Works.
+    description: LA URL that will get you a list of all this venue's Works.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_VENUE
-  - id: _PROP_DOI
+      - entryTypeKey: venue
+  - key: doi
     name: doi
-    descriptionMD: Work's doi identifier.
+    description: Work's doi identifier.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_TITLE
+      - entryTypeKey: _ET_WORK
+  - key: title
     name: Title
-    descriptionMD: Work's title.
+    description: Work's title.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_PUBLICATION_YEAR
+      - entryTypeKey: _ET_WORK
+  - key: publication-year
     name: Publication year.
-    descriptionMD: Publication year
+    description: Publication year
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_PUBLICATION_DATE
+      - entryTypeKey: _ET_WORK
+  - key: publication-date
     name: Publication date
-    descriptionMD: Publication date.
+    description: Publication date.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_PMID
+      - entryTypeKey: _ET_WORK
+  - key: pmid
     name: PMID
-    descriptionMD: Pubmed identifier.
+    description: Pubmed identifier.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_PMCID
+      - entryTypeKey: _ET_WORK
+  - key: pmc-id
     name: PMCID
-    descriptionMD: Pubmed Central Identifier.
+    description: Pubmed Central Identifier.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_IS_OA
+      - entryTypeKey: _ET_WORK
+  - key: is-open-access
     name: Is open-access?
-    descriptionMD: Indicates whether the work is open-access.
+    description: Indicates whether the work is open-access.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_OA_STATUS
+      - entryTypeKey: _ET_WORK
+  - key: oa-status
     name: Status of open-access.
-    descriptionMD: Open-access status. One of "gold", "green", "hybrid", "bronze" and "closed".
+    description: Open-access status. One of "gold", "green", "hybrid", "bronze" and "closed".
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_OA_URL
+      - entryTypeKey: _ET_WORK
+  - key: oa-url
     name: Open-access URL.
-    descriptionMD: URL to closest to open-access version of a work.
+    description: URL to closest to open-access version of a work.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_IS_RETRACTED
+      - entryTypeKey: _ET_WORK
+  - key: is-retracted
     name: Is the work retracted?
-    descriptionMD: Indicates whether the work is retracted.
+    description: Indicates whether the work is retracted.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
-  - id: _PROP_IS_PARATEXT
+      - entryTypeKey: _ET_WORK
+  - key: is-paratext
     name: Is it paratext?
-    descriptionMD: Indicates whether the work is a paratext.
+    description: Indicates whether the work is a paratext.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_WORK
+      - entryTypeKey: _ET_WORK
 
 # RELATIONSHIPS
-  - id: _PROP_PARENT_CONCEPT
+  - key: parent-concept
     name: Parent Concept
-    descriptionMD: List of concepts that this concept descends from.
+    description: List of concepts that this concept descends from.
     type: IS_A
     mode: REC
     rank: 0
     appliesTo:
-      - entryType: _ET_CONCEPT
-    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
-  - id: _PROP_CHILD_CONCEPTS
+      - entryTypeKey: concept
+    valueConstraint: x.entryType() = entryType("concept")
+  - key: child-concepts
     name: Child Concepts
-    descriptionMD: List of concepts that this concept is a parent of.
+    description: List of concepts that this concept is a parent of.
     type: RELATES_TO
     mode: AUTO
     rank: 0
     appliesTo:
-      - entryType: _ET_CONCEPT
-    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
-    default: 'this.reverse(prop=prop("_PROP_PARENT_CONCEPT"))'
+      - entryTypeKey: concept
+    valueConstraint: x.entryType() = entryType("concept")
+    default: 'this.reverse(prop=prop("parent-concept"))'
     
-  - id: _PROP_RELATED_CONCEPTS
+  - key: related-concepts
     name: Related concepts
-    descriptionMD: Concepts that are similar to this one.
+    description: Concepts that are similar to this one.
     type: RELATES_TO
     mode: REC
     rank: 1
     appliesTo:
-      - entryType: _ET_CONCEPT
-    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
-  - id: _PROP_PARENT_INSTITUTIONS
+      - entryTypeKey: concept
+    valueConstraint: x.entryType() = entryType("concept")
+  - key: parent-institutions
     name: Parents
-    descriptionMD: List of parent institutions.
+    description: List of parent institutions.
     type: RELATES_TO
     mode: REC
     rank: 0
     appliesTo:
-      - entryType: _ET_INSTITUTION
-    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
-  - id: _PROP_CHILD_INSTITUTIONS
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("institution")
+  - key: child-institutions
     name: Child institutions
-    descriptionMD: List of child institutions.
+    description: List of child institutions.
     type: RELATES_TO
     mode: AUTO
     rank: 0
     appliesTo:
-      - entryType: _ET_INSTITUTION
-    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
-    default: 'this.reverse(prop=[[/prop/_PROP_ANCESTORS]])'
-  - id: _PROP_RELATED_INSTITUTIONS
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("institution")
+    default: 'this.reverse(prop=prop("parent-institutions"))'
+  - key: related-institutions
     name: Related institutions
-    descriptionMD: List of related institutions.
+    description: List of related institutions.
     type: RELATES_TO
     mode: REC
     rank: 0
     appliesTo:
-      - entryType: _ET_INSTITUTION
-    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
-  - id: _PROP_LAST_KNOWN_INSTITUTION
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("institution")
+  - key: last-known-institution
     name: Last known institution
-    descriptionMD: Last known associated instituion.
+    description: Last known associated instituion.
     type: RELATES_TO
     mode: REC
     rank: 0
     appliesTo:
-      - entryType: _ET_AUTHOR
-    valueConstraint: x.entryType() = entryType("_ET_INSTITUTION")
-  - id: _PROP_ASSOCIATED_AUTHOR
-    name: Associated author
-    descriptionMD: Author associated with this institution.
+      - entryTypeKey: author
+    valueConstraint: x.entryType() = entryType("institution")
+  - key: associated-authors
+    name: Associated authors
+    description: Authors associated with this institution.
     type: RELATES_TO
     mode: AUTO
     rank: 0
     appliesTo:
-      - entryType: _ET_INSTITUTION
-    valueConstraint: x.entryType() = entryType("_ET_AUTHOR")
-    default: 'this.reverse(prop=[[/prop/_PROP_LAST_KNOWN_INSTITUTION]])'
-  - id: _PROP_HOST_VENUE
-    name: Host venue
-    descriptionMD: A HostVenue object describing how and where this work is being hosted online.
-    type: RELATES_TO
-    mode: REC
-    rank: 0
-    appliesTo:
-      - entryType: _ET_WORK
-    valueConstraint: x.entryType() = entryType("_ET_VENUE")
-  
-
-idMap:
-  comment: >-
-    if you edit one of the IDs above, you should edit it below here too. You do
-    not need to add IDs here for new entries.
-  map:
-    _ET_CONCEPT: _vj4bFX3CVAGMis4aiL4AJ
-    _ET_INSTITUTION: _6IBiJrvrPmEDXVCpdphja2
-    _PROP_WIKIDATA: _63mbf1PWCiYQVs53ef3lcp
-    _PROP_LEVEL: _3AyM6hRQL23PhhHZrboCYr
-    _PROP_WORKS_COUNT: _4OujpOZawdTunrjtSQrPcb
-    _PROP_MAG_ID: _1i2GXNofq5YEgaA3R9F4KN
-    _PROP_WIKIPEDIA_ID: _468JDObMgV93qhEfHSAWnr
-    _PROP_UPDATED_DATE: _1M7JXgQKUfgSageiKdR82T
-    _PROP_PARENT_CONCEPT: _1uwLIPU2RI457BkrPs3rgM
-    _PROP_RELATED_CONCEPTS: _4wv8wdeT0B33FTQPBcAszM
-    _PROP_DESCENDANTS: _5bqPhtxKnanIkfrOUuxq4M
-    _PROP_PARENT_INSTITUTIONS: _2WcngIq4qAP8jYL0W1o7iK
-    _PROP_CHILD_INSTITUTIONS: _47ihemw9K882NvnTGklODY
-    _PROP_RELATED_INSTITUTIONS: _2tGs933dsiNrejnlX8C1cS
-    _PROP_SCOPUS_ID: _67iX5qqVN01rUqWk85wzco
-    _ET_AUTHOR: _4dQI9bcpJaIbeg2GHgdPgf
-    _PROP_ORCID: _7A5Wa42OstkFT0J5uSgQe7
-    _CITED_BY_COUNT: _5jsjdLPAL9UK0i3WAQTWXK
-    _PROP_LAST_KNOWN_INSTITUTION: _1JFqXKkYV2vYEjiHI1AS2F
-    _PROP_ASSOCIATED_AUTHOR: _5l1iUSabWX3Oqglokv1JTZ
-    _PROP_ROR: _40f9pqAoVezJMsluDEoX8R
-    _PROP_COUNTRY_CODE: _1KL8Jd79CEYP4D0W2ae9jc
-    _PROP_INSTITUTION_TYPE: _4ri7I2Si8KbBzj6Ao36cLH
-    _ET_VENUE: _5X3C4f0mDy9RKziLpP1Few
-    _PROP_ISSN_L: _6iPoU1dsJEyMK6Ui23FtC3
-    _PROP_ISSN: _6y3Gun1pkTNoe2F4mQ34i7
-    _PROP_COUNTS_BY_YEAR: _iuTgSAnr6HWgJcPGUt7FT
-    _PROP_WORKS_API_URL: _2lcWYtipXp6wruM1Euu0GT
-    _PROP_DOI: _3W6WCrZ6Q5gfWZI4oHdHOQ
-    _PROP_TITLE: _4jbPlGqe23uxRfDoWLH7MI
-    _PROP_PUBLICATION_YEAR: _2BGNyG50drPYgjTLIrEaSF
-    _PROP_PUBLICATION_DATE: _1VB9bSjlIEcscflCZW5HhL
-    _PROP_PMID: _1PGQimSDXfHUcWSiNTU2h0
-    _PROP_PMCID: _6wAsbN1UGoBs0ImFU9GJAJ
-    _PROP_IS_OA: _2OidkpKVLC8W5B3xjvJaH4
-    _PROP_OA_STATUS: _2SHHV1zaxkLuZDipZWsPqy
-    _PROP_OA_URL: _6nEVzwO5Dk5LfccIdecfy6
-    _PROP_IS_RETRACTED: _2cGjybttDOgsmm6kUe5rqx
-    _PROP_IS_PARATEXT: _13TQUi0GMmUCxX1HEdGuF8
-    
-    
-    _PROP_CHILD_CONCEPTS: _5bqPhtxKnanIkfrOUuxq4M
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("author")
+    default: 'this.reverse(prop=prop("last-known-institution"))'
+  # - key: host-venue
+  #   name: Host venue
+  #   description: A HostVenue object describing how and where this work is being hosted online.
+  #   type: RELATES_TO
+  #   mode: REC
+  #   rank: 0
+  #   appliesTo:
+  #     - entryTypeKey: work
+  #   valueConstraint: x.entryType() = entryType("venue")

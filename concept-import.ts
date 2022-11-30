@@ -1,7 +1,6 @@
-import { api, getApiClient, VNID } from "./neolace-api-client.ts";
-import { addPropertyValueEdit, schema, updateRelatinoships, findOrCreateEntry } from "./openalex-import.ts"
-type NominalType<T, K extends string> = T & { nominal: K };
-type VNID = NominalType<string, "VNID">;
+import { api } from "./neolace-api-client.ts";
+import { schema } from "./schema.ts";
+import { getIdFromUrl, getIdFromUrlIfSet, getWikipediaIdFromUrl, setDateProperty, setIntegerProperty, setStringProperty } from "./utils.ts";
 
 export interface DehydratedConcept {
   "id": string;
@@ -9,6 +8,7 @@ export interface DehydratedConcept {
   "wikidata"?: string;
   "level": number;
 }
+
 export interface Concept extends DehydratedConcept {
   // "relevance_score":null;
   "description"?: string | null;
@@ -45,63 +45,73 @@ export interface Concept extends DehydratedConcept {
   "updated_date"?: string;
 }
 
-export async function importConceptToTheDatabase(concept: Concept) {
-    const client = await getApiClient();
-    const id = concept.id.split("/").pop() as string;
+const entryTypeKey = schema.concept;
 
-    //  find or create a new entry
-    const edits: api.AnyContentEdit[] = [];
+export function importConcept(concept: Concept): api.AnyBulkEdit[] {
+    const entryKey = getIdFromUrl(concept.id);
 
-    const result = await findOrCreateEntry(id, schema.concept, concept);
-    edits.concat(result.edits);
-    const neolaceId = result.neolaceId;
-    const isNewEntry = result.isNewEntry;
+    // Generate the "bulk edits" to create/update this concept:
+    const edits: api.AnyBulkEdit[] = [
+      {
+        code: "UpsertEntryByKey",
+        data: {
+          where: { entryKey, entryTypeKey },
+          set: {
+            name: concept.display_name,
+            description: concept.description ?? "",
+          },
+        },
+      },
+      {
+        code: "SetPropertyFacts",
+        data: {
+          entryWith: { entryKey },
+          set: [
+            // Wikidata ID:
+            setStringProperty(schema.wikidata, getIdFromUrlIfSet(concept.wikidata)),
+            // Level:
+            setIntegerProperty(schema.level, concept.level),
+            // Works count:
+            setIntegerProperty(schema.works_count, concept.works_count),
+            //  set the microsoft academic graph id
+            setIntegerProperty(schema.mag_id, concept.ids.mag ? parseInt(concept.ids.mag, 10) : undefined),
+            //  set the wikipedia id
+            setStringProperty(schema.wikipedia_id, getWikipediaIdFromUrl(concept.ids.wikipedia)),
+            //  set the updated date
+            setDateProperty(schema.updated_date, concept.updated_date),
+          ],
+        },
+      },
+    ];
 
-    // add property values
-    const addPropertyForConcept = addPropertyValueEdit(neolaceId);
+    const parents = (concept.ancestors ?? []).filter((a: {level: number}) => a.level === concept.level - 1);
 
-    //  set the wikidata id
-    if (concept.wikidata) {
-      edits.concat(addPropertyForConcept(schema.wikidata, concept.wikidata.split("/").pop()));
+    // Make sure the parents exist:
+    for (const parent of parents) {
+      edits.push({code: "UpsertEntryByKey", data: {
+        where: { entryTypeKey, entryKey: getIdFromUrl(parent.id) },
+        setOnCreate: {
+          // Only set these if the entry doesn't yet exist; otherwise use whatever values it already has.
+          name: parent.display_name,
+        },
+      }});
     }
-    //  set the level
-    edits.concat(addPropertyForConcept(schema.level, concept.level));
-    //  set the works count
-    edits.concat(addPropertyForConcept(schema.works_count, concept.works_count));
-    //  set the microsoft academic graph id
-    edits.concat(addPropertyForConcept(schema.mag_id, concept.ids.mag));
-    //  set the wikipedia id
-    if (concept.ids.wikipedia) {
-      edits.concat(
-        addPropertyForConcept(
-          schema.wikipedia_id, 
-          (concept.ids.wikipedia.split("/").pop() as string).replace("%20", "_")
-        )
-      );
-    }
-    //  set the updated date
-    if (concept.updated_date) {
-      edits.concat(addPropertyForConcept(schema.updated_date, concept.updated_date));
-    }
 
-    // deno-lint-ignore no-explicit-any
-    const parents = (concept.ancestors ?? []).filter((a: any) =>
-      a.level === concept.level - 1
+    // Set the parents:
+    edits.push(
+      {
+        code: "SetRelationships",
+        data: {
+          entryWith: { entryKey },
+          set: [
+            {
+              propertyKey: schema.parent_concept,
+              toEntries: parents.map((parent) => ({ entryWith: { entryKey: getIdFromUrl(parent.id) } })),
+            }
+          ],
+        },
+      },
     );
-
-    const ancestor_set = new Set<VNID>();
-    for (const ancestor of parents) {
-      const ancestor_id = ancestor.id.split("/").pop() as string;
-      const entry_vnid = (await client.getEntry(ancestor_id)).id;
-      ancestor_set.add(entry_vnid);
-    }
-    edits.concat(await updateRelatinoships(schema.ancestors, neolaceId, ancestor_set, isNewEntry));
-
-    const { id: draftId } = await client.createDraft({
-      title: "import concept",
-      description: "",
-      edits,
-    });
-    await client.acceptDraft(draftId);
+    return edits;
 }
 
