@@ -4,7 +4,7 @@
  * http://openalex.local.neolace.net:5555/
  */
 import * as log from "std/log/mod.ts";
-import { EmptyResultError, VNID } from "neolace/deps/vertex-framework.ts";
+import { EmptyResultError } from "neolace/deps/vertex-framework.ts";
 
 import { getGraph } from "neolace/core/graph.ts";
 import { User } from "neolace/core/User.ts";
@@ -22,13 +22,12 @@ log.info("Checking users and site...");
 const {id: adminUserId} = await graph.pullOne(User, u => u.id, {with: {username: "admin"}});
 
 // Create the "OpenAlex" site:
-const {id: siteId} = await graph.pullOne(Site, s => s.id, {with: {friendlyId: "openalex"}}).catch(err =>{
+const {id: siteId} = await graph.pullOne(Site, s => s.id, {with: {key: "openalex"}}).catch(err =>{
     if (!(err instanceof EmptyResultError)) { throw err; }
     return graph.runAsSystem(CreateSite({
-        id: VNID("_siteOPENALEX"),
+        key: "openalex",
         name: "OpenAlex",
         domain: "openalex.local.neolace.net",
-        friendlyId: `openalex`,
         adminUser: adminUserId,
     }));
 });

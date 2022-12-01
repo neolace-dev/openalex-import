@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Get the API client
 
-import * as api from "../../neolace-app/neolace-api/src/index.ts";
+import * as api from "neolace/deps/neolace-api.ts";
 
 export { api };
 
@@ -26,7 +26,7 @@ export async function getApiClient(): Promise<api.NeolaceApiClient> {
             basePath: apiEndpoint,
             fetchApi: fetch,
             authToken: apiKey,
-            siteId: 'openalex',
+            siteKey: 'openalex',
         });
 
         try {

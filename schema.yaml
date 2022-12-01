@@ -1,102 +1,345 @@
 entryTypes:
-  - id: _ET_CONCEPT
+  - key: concept
     name: Concept
     description: An OpenAlex Concept
-    friendlyIdPrefix: C
+    keyPrefix: C
+    enabledFeatures: {}
+  - key: institution
+    name: Institution
+    description: An OpenAlex Institution
+    keyPrefix: I
+    enabledFeatures: {}
+  - key: author
+    name: Author
+    description: An OpenAlex Author
+    keyPrefix: A
+    enabledFeatures: {}
+  - key: venue
+    name: Venue
+    description: An OpenAlex Venue
+    keyPrefix: V
     enabledFeatures: {}
 properties:
-  - id: _PROP_WIKIDATA
+
+#  NON-RELATIONSHIPS
+  - key: wikidata-id
     name: Wikidata
     description: The Wikidata ID for this concept. 
     type: VALUE
     mode: REC
     rank: 3
     appliesTo:
-      - entryType: _ET_CONCEPT
+      - entryTypeKey: concept
+      - entryTypeKey: institution
     displayAs: "[{value}](https://www.wikidata.org/wiki/{value})"
-  - id: _PROP_LEVEL
+  - key: level
     name: Level
     description: The level in the concept tree where this concept lives.
     type: VALUE
     mode: REC
     rank: 2
     appliesTo:
-      - entryType: _ET_CONCEPT
-  - id: _PROP_WORKS_COUNT
+      - entryTypeKey: concept
+  - key: works-count
     name: Works Count
     description: The number of works tagged with this concept.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_CONCEPT
-  - id: _PROP_MAG_ID
+      - entryTypeKey: concept
+      - entryTypeKey: institution
+      - entryTypeKey: author
+      - entryTypeKey: venue
+  - key: cited-by-count
+    name: Cited By Count
+    description: The number of citations accumulated.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: author
+      - entryTypeKey: venue
+      - entryTypeKey: _ET_WORK
+  - key: mag-id
     name: MAG ID
     description: Microsoft Academic Graph ID.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_CONCEPT
-  - id: _PROP_WIKIPEDIA_ID
+      - entryTypeKey: institution
+      - entryTypeKey: concept
+      - entryTypeKey: author
+      - entryTypeKey: venue
+      - entryTypeKey: _ET_WORK
+  - key: wikipedia-id
     name: Wikipedia ID
     description: The concept's Wikipedia page URL.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_CONCEPT
+      - entryTypeKey: institution
+      - entryTypeKey: concept
+      - entryTypeKey: author
     displayAs: "[{value}](https://en.wikipedia.org/wiki/{value})"
-  - id: _PROP_UPDATED_DATE
+  - key: scopus-id
+    name: SCOPUS ID
+    description: The concept's SCOPUS page URL.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: author
+  - key: updated-date
     name: Updated date
     description: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
-      - entryType: _ET_CONCEPT
-  - id: _PROP_PARENT_CONCEPT
+      - entryTypeKey: institution
+      - entryTypeKey: concept
+      - entryTypeKey: author
+      - entryTypeKey: venue
+      - entryTypeKey: _ET_WORK
+  - key: orcid
+    name: ORCID
+    description: The ORCID of the author.
+    type: VALUE
+    mode: REC
+    rank: 2
+    appliesTo:
+      - entryTypeKey: author
+  - key: ror-id
+    name: ROR ID
+    description: Research Organization Registry identifier
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: institution
+  - key: country-code
+    name: Country code
+    description: Country code
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: institution
+  - key: institution-type
+    name: Institution type
+    description: Institution type of eight used to characterize institutions by OpenAlex
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: institution
+  - key: issn-l
+    name: ISSN-L
+    description: The ISSN-L or Linking ISSN is a single canonical ISSN for all media versions of the title.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: venue
+  - key: issn
+    name: ISSN
+    description: The list of ISSNs for this venue.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: venue
+  # - key: counts-by-year
+  #   name: Counts by year
+  #   description: List of works_count and cited_by_count for each of the last ten years, binned by year.
+  #   type: VALUE
+  #   mode: REC
+  #   rank: 5
+  #   appliesTo:
+  #     - entryTypeKey: venue
+  - key: works-api-url
+    name: Works api URL
+    description: LA URL that will get you a list of all this venue's Works.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: venue
+  - key: doi
+    name: doi
+    description: Work's doi identifier.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: title
+    name: Title
+    description: Work's title.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: publication-year
+    name: Publication year.
+    description: Publication year
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: publication-date
+    name: Publication date
+    description: Publication date.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: pmid
+    name: PMID
+    description: Pubmed identifier.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: pmc-id
+    name: PMCID
+    description: Pubmed Central Identifier.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: is-open-access
+    name: Is open-access?
+    description: Indicates whether the work is open-access.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: oa-status
+    name: Status of open-access.
+    description: Open-access status. One of "gold", "green", "hybrid", "bronze" and "closed".
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: oa-url
+    name: Open-access URL.
+    description: URL to closest to open-access version of a work.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: is-retracted
+    name: Is the work retracted?
+    description: Indicates whether the work is retracted.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+  - key: is-paratext
+    name: Is it paratext?
+    description: Indicates whether the work is a paratext.
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: _ET_WORK
+
+# RELATIONSHIPS
+  - key: parent-concept
     name: Parent Concept
     description: List of concepts that this concept descends from.
     type: IS_A
     mode: REC
     rank: 0
     appliesTo:
-      - entryType: _ET_CONCEPT
-    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
-  - id: _PROP_CHILD_CONCEPTS
+      - entryTypeKey: concept
+    valueConstraint: x.entryType() = entryType("concept")
+  - key: child-concepts
     name: Child Concepts
     description: List of concepts that this concept is a parent of.
     type: RELATES_TO
     mode: AUTO
     rank: 0
     appliesTo:
-      - entryType: _ET_CONCEPT
-    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
-    default: 'this.reverse(prop=prop("_PROP_PARENT_CONCEPT"))'
+      - entryTypeKey: concept
+    valueConstraint: x.entryType() = entryType("concept")
+    default: 'this.reverse(prop=prop("parent-concept"))'
     
-  - id: _PROP_RELATED_CONCEPTS
+  - key: related-concepts
     name: Related concepts
     description: Concepts that are similar to this one.
     type: RELATES_TO
     mode: REC
     rank: 1
     appliesTo:
-      - entryType: _ET_CONCEPT
-    valueConstraint: x.entryType() = entryType("_ET_CONCEPT")
-
-idMap:
-  comment: >-
-    if you edit one of the IDs above, you should edit it below here too. You do
-    not need to add IDs here for new entries.
-  map:
-    _ET_CONCEPT: _vj4bFX3CVAGMis4aiL4AJ
-    _PROP_WIKIDATA: _63mbf1PWCiYQVs53ef3lcp
-    _PROP_LEVEL: _3AyM6hRQL23PhhHZrboCYr
-    _PROP_WORKS_COUNT: _4OujpOZawdTunrjtSQrPcb
-    _PROP_MAG_ID: _1i2GXNofq5YEgaA3R9F4KN
-    _PROP_WIKIPEDIA_ID: _468JDObMgV93qhEfHSAWnr
-    _PROP_UPDATED_DATE: _1M7JXgQKUfgSageiKdR82T
-    _PROP_PARENT_CONCEPT: _1uwLIPU2RI457BkrPs3rgM
-    _PROP_RELATED_CONCEPTS: _4wv8wdeT0B33FTQPBcAszM
-    _PROP_CHILD_CONCEPTS: _5bqPhtxKnanIkfrOUuxq4M
+      - entryTypeKey: concept
+    valueConstraint: x.entryType() = entryType("concept")
+  - key: parent-institutions
+    name: Parents
+    description: List of parent institutions.
+    type: RELATES_TO
+    mode: REC
+    rank: 0
+    appliesTo:
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("institution")
+  - key: child-institutions
+    name: Child institutions
+    description: List of child institutions.
+    type: RELATES_TO
+    mode: AUTO
+    rank: 0
+    appliesTo:
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("institution")
+    default: 'this.reverse(prop=prop("parent-institutions"))'
+  - key: related-institutions
+    name: Related institutions
+    description: List of related institutions.
+    type: RELATES_TO
+    mode: REC
+    rank: 0
+    appliesTo:
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("institution")
+  - key: last-known-institution
+    name: Last known institution
+    description: Last known associated instituion.
+    type: RELATES_TO
+    mode: REC
+    rank: 0
+    appliesTo:
+      - entryTypeKey: author
+    valueConstraint: x.entryType() = entryType("institution")
+  - key: associated-authors
+    name: Associated authors
+    description: Authors associated with this institution.
+    type: RELATES_TO
+    mode: AUTO
+    rank: 0
+    appliesTo:
+      - entryTypeKey: institution
+    valueConstraint: x.entryType() = entryType("author")
+    default: 'this.reverse(prop=prop("last-known-institution"))'
+  # - key: host-venue
+  #   name: Host venue
+  #   description: A HostVenue object describing how and where this work is being hosted online.
+  #   type: RELATES_TO
+  #   mode: REC
+  #   rank: 0
+  #   appliesTo:
+  #     - entryTypeKey: work
+  #   valueConstraint: x.entryType() = entryType("venue")
