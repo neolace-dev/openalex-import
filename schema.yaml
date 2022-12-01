@@ -3,21 +3,29 @@ entryTypes:
     name: Concept
     description: An OpenAlex Concept
     keyPrefix: C
+    color: emerald
+    abbreviation: C
     enabledFeatures: {}
   - key: institution
     name: Institution
     description: An OpenAlex Institution
     keyPrefix: I
+    color: blue
+    abbreviation: I
     enabledFeatures: {}
   - key: author
     name: Author
     description: An OpenAlex Author
     keyPrefix: A
+    color: yellow
+    abbreviation: A
     enabledFeatures: {}
   - key: venue
     name: Venue
     description: An OpenAlex Venue
     keyPrefix: V
+    color: red
+    abbreviation: V
     enabledFeatures: {}
 properties:
 
@@ -42,7 +50,7 @@ properties:
       - entryTypeKey: concept
   - key: works-count
     name: Works Count
-    description: The number of works tagged with this concept.
+    description: The number of works tagged with this entity.
     type: VALUE
     mode: REC
     rank: 5
@@ -94,7 +102,7 @@ properties:
       - entryTypeKey: author
   - key: updated-date
     name: Updated date
-    description: The last time anything in this concept object changed, expressed as an ISO 8601 date string. This date is updated for any change at all, including increases in various counts.
+    description: The last time anything in this entity changed. This date is updated for any change at all, including increases in various counts.
     type: VALUE
     mode: REC
     rank: 5
@@ -120,6 +128,7 @@ properties:
     rank: 5
     appliesTo:
       - entryTypeKey: institution
+    displayAs: "[{value}](https://ror.org/{value})"
   - key: country-code
     name: Country code
     description: Country code
