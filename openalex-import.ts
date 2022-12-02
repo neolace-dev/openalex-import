@@ -39,6 +39,10 @@ async function import_entities<EntityData>(
   entity_import: (json_object: EntityData) => api.AnyBulkEdit[],
   condition?: (data: EntityData) => boolean,
 ) {
+  // TODO: this should use the manifest files so that older files which have been deleted on the server can be ignored.
+  // See https://docs.openalex.org/download-snapshot/snapshot-data-format#the-manifest-file
+  // TODO: this should use the merged_ids to delete merged entries
+  // See https://docs.openalex.org/download-snapshot/snapshot-data-format#merged-entities
   console.log("Scanning files...");
   const all_dates = Array.from(
     Deno.readDirSync(`data/${entity_string}`)).filter(
@@ -111,6 +115,8 @@ async function import_entities<EntityData>(
   const totalTimeMs = performance.now() - startTime;
   console.log("Took: ", Math.round(totalTimeMs / 1_000), "s");
 }
+
+// Note: see the release notes at https://github.com/ourresearch/openalex-guts/blob/main/files-for-datadumps/standard-format/RELEASE_NOTES.txt
 
 // await download_things('concepts');
 // await download_things('institutions');
