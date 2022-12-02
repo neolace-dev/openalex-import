@@ -104,9 +104,18 @@ async function import_entities<EntityData>(
             // console.log(json_entity);
             const doImport = condition === undefined || condition(json_entity);
             if (doImport) {
-                pendingEdits.push(...entity_import(json_entity));
+                try {
+                    pendingEdits.push(...entity_import(json_entity));
+                } catch (err) {
+                    console.error(`A ${entity_string} entity could not be parsed:\n`, line);
+                    throw err;
+                }
             }
-            if (pendingEdits.length > 500) {
+            // Note: depending on the entity type, you can adjust this limit between 100 and 500
+            // to balance import speed vs. the risk of getting an error for the transaction needing
+            // too much memory.
+            if (pendingEdits.length > 100) {
+                // console.log(JSON.stringify(pendingEdits[0], undefined, 2));
                 await pushEdits();
             }
         }
@@ -121,7 +130,7 @@ async function import_entities<EntityData>(
 
 // await download_things('concepts');
 // await download_things('institutions');
-// await download_things('authors');
+// await download_things('venues');
 
 // const country = "CA";
 // await import_entities(
@@ -147,7 +156,8 @@ async function import_entities<EntityData>(
 // )
 
 // await import_entities("concepts", importConcept);
-await import_entities("institutions", importInstitution);
+// await import_entities("institutions", importInstitution);
+await import_entities("venues", importVenue);
 
 //  import authors associated to Canadian Institutions
 // await import_entities(

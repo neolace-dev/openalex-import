@@ -46,6 +46,7 @@ properties:
     appliesTo:
       - entryTypeKey: concept
       - entryTypeKey: institution
+      - entryTypeKey: venue
     displayAs: "[{value}](https://www.wikidata.org/wiki/{value})"
   - key: level
     name: Level
@@ -75,7 +76,7 @@ properties:
     appliesTo:
       - entryTypeKey: author
       - entryTypeKey: venue
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: mag-id
     name: MAG ID
     description: Microsoft Academic Graph ID.
@@ -87,7 +88,7 @@ properties:
       - entryTypeKey: concept
       - entryTypeKey: author
       - entryTypeKey: venue
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: wikipedia-id
     name: Wikipedia ID
     description: The concept's Wikipedia page URL.
@@ -118,7 +119,7 @@ properties:
       - entryTypeKey: concept
       - entryTypeKey: author
       - entryTypeKey: venue
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: orcid
     name: ORCID
     description: The ORCID of the author.
@@ -127,6 +128,15 @@ properties:
     rank: 2
     appliesTo:
       - entryTypeKey: author
+  - key: fatcat-id
+    name: Fatcat ID
+    description: ID of this venue in Fatcat, "a versioned, user-editable catalog of research publications including journal articles, conference proceedings, and datasets."
+    type: VALUE
+    mode: REC
+    rank: 5
+    appliesTo:
+      - entryTypeKey: venue
+    displayAs: "[{value}](https://fatcat.wiki/container/{value})"
   - key: ror-id
     name: ROR ID
     description: Research Organization Registry identifier
@@ -184,6 +194,31 @@ properties:
     rank: 5
     appliesTo:
       - entryTypeKey: venue
+  - key: abbreviated-title
+    name: Abbreviated Title
+    description: An abbreviated title obtained from the [ISSN Centre](https://issn.org/).
+    type: VALUE
+    mode: REC
+    rank: 3
+    appliesTo:
+      - entryTypeKey: venue
+  - key: alternate-titles
+    name: Alternate Titles
+    description: Alternate titles for this Venue.
+    type: VALUE
+    mode: REC
+    rank: 4
+    appliesTo:
+      - entryTypeKey: venue
+  - key: homepage-url
+    name: Homepage URL
+    description: The official URL for this institution/venue.
+    type: VALUE
+    mode: REC
+    rank: 6
+    appliesTo:
+      - entryTypeKey: institution
+      - entryTypeKey: venue
   - key: doi
     name: doi
     description: Work's doi identifier.
@@ -191,7 +226,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: title
     name: Title
     description: Work's title.
@@ -199,7 +234,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: publication-year
     name: Publication year.
     description: Publication year
@@ -207,7 +242,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: publication-date
     name: Publication date
     description: Publication date.
@@ -215,7 +250,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: pmid
     name: PMID
     description: Pubmed identifier.
@@ -223,7 +258,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: pmc-id
     name: PMCID
     description: Pubmed Central Identifier.
@@ -231,7 +266,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: is-open-access
     name: Is open-access?
     description: Indicates whether the work is open-access.
@@ -239,7 +274,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: oa-status
     name: Status of open-access.
     description: Open-access status. One of "gold", "green", "hybrid", "bronze" and "closed".
@@ -247,7 +282,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: oa-url
     name: Open-access URL.
     description: URL to closest to open-access version of a work.
@@ -255,7 +290,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: is-retracted
     name: Is the work retracted?
     description: Indicates whether the work is retracted.
@@ -263,7 +298,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
   - key: is-paratext
     name: Is it paratext?
     description: Indicates whether the work is a paratext.
@@ -271,7 +306,7 @@ properties:
     mode: REC
     rank: 5
     appliesTo:
-      - entryTypeKey: _ET_WORK
+      - entryTypeKey: work
 
 # RELATIONSHIPS
   - key: parent-concept
