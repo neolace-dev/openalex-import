@@ -37,6 +37,20 @@ entryTypes:
 properties:
 
 #  NON-RELATIONSHIPS
+  - key: openalex-id
+    name: OpenAlex ID
+    description: The Unique permanent ID for this entity assigned by OpenAlex.
+    type: VALUE
+    mode: AUTO
+    rank: 1
+    appliesTo:
+      - entryTypeKey: author
+      - entryTypeKey: concept
+      - entryTypeKey: institution
+      - entryTypeKey: venue
+      - entryTypeKey: work
+    default: this.key
+    displayAs: "[{value}](https://openalex.org/{value})"
   - key: wikidata-id
     name: Wikidata
     description: The Wikidata ID for this concept. 
@@ -187,13 +201,14 @@ properties:
   #   appliesTo:
   #     - entryTypeKey: venue
   - key: works-api-url
-    name: Works api URL
-    description: LA URL that will get you a list of all this venue's Works.
+    name: Works API URL
+    description: The URL that will get you a list of all this venue's Works.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
       - entryTypeKey: venue
+    displayAs: "[{value}]({value})"
   - key: abbreviated-title
     name: Abbreviated Title
     description: An abbreviated title obtained from the [ISSN Centre](https://issn.org/).
