@@ -24,7 +24,8 @@ export const siteData: Partial<Parameters<typeof UpdateSite>[0]> = {
             hoverPreview: {enabled: true},
         },
         plugins: {
-            search: {},
+            // Search indexing is currently too slow to support the use of TypeSense search on the huge OpenAlex data sets.
+            // search: {},
         },
     },
 };
