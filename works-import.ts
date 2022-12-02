@@ -1,8 +1,8 @@
 import { api } from "./neolace-api-client.ts";
-import { DehydratedInstitution } from "./institutions-import.ts"
-import { DehydratedAuthor } from "./authors-import.ts"
-import { DehydratedVenue } from "./venue-import.ts"
-import { DehydratedConcept } from "./concept-import.ts"
+import { DehydratedInstitution } from "./institutions-import.ts";
+import { DehydratedAuthor } from "./authors-import.ts";
+import { DehydratedVenue } from "./venue-import.ts";
+import { DehydratedConcept } from "./concept-import.ts";
 
 interface Authorship extends DehydratedAuthor {
     "author_position": "first" | "middle" | "last";
@@ -14,7 +14,7 @@ interface HostVenue extends DehydratedVenue {
     "url": string;
     "is_oa": boolean;
     "version": "publishedVersion" | "acceptedVersion" | "submittedVersion";
-    "licence"?: string;  
+    "licence"?: string;
     // NOTE there is also type field here, but it is not described
 }
 
@@ -37,10 +37,10 @@ export interface Work {
         "mag"?: string;
         "pmid"?: string;
         "pmcid"?: string;
-    }
+    };
     "host_venue": HostVenue; // rel
     "type": string; // TODO add Crossref's controlled vocabulary // TODO add to schema
-    "open_access": OpenAccess; 
+    "open_access": OpenAccess;
     "authorships": Authorship[]; // ??? rel
     "cited_by_count": number;
     "biblio": { // TODO to add to schema
@@ -48,18 +48,18 @@ export interface Work {
         "issue"?: string;
         "first_page"?: string;
         "last_page"?: string;
-    }
+    };
     "is_retracted": boolean;
     "is_paratext": boolean;
     "concepts": (DehydratedConcept & { // rels
         "score": number;
-    })[]
+    })[];
     "mesh"?: { // NOTE Mesh object from PubMed //TODO add to schema
-        "descriptor_ui"?:  string,
-        "descriptor_name"?:  string,
-        "qualifier_ui"?:  string,
-        "qualifier_name"?:  string,
-        "is_major_topic"?:  boolean,
+        "descriptor_ui"?: string;
+        "descriptor_name"?: string;
+        "qualifier_ui"?: string;
+        "qualifier_name"?: string;
+        "is_major_topic"?: boolean;
     }[];
     "alternate_host_venues": HostVenue[]; // rels
     "referenced_works": string[]; // list of openalex ids REL

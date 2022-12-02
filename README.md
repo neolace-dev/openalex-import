@@ -6,7 +6,8 @@
 ./openalex-import.ts
 ```
 
-If you need to reset it: 
+If you need to reset it:
+
 ```
 ../../neolace-app/neolace-api/neolace-admin.ts erase-content openalex --skip-prompt-and-dangerously-delete
 ```

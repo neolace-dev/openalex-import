@@ -43,19 +43,22 @@ export function importVenue(venue: Venue): api.AnyBulkEdit[] {
         },
         {
             code: "SetPropertyFacts",
-            data: { entryWith: { entryKey }, set: [
-                setStringProperty(schema.issn_l, venue.issn_l),
-                setIntegerProperty(schema.works_count, venue.works_count),
-                setIntegerProperty(schema.cited_by_count, venue.cited_by_count),
-                {
-                    propertyKey: schema.issn,
-                    facts: venue.issn.map(value => ({ valueExpression: `"${value}"` })),
-                },
-                // Counts by year would require creating a separate VenueCountsByYear Entry Type
-                setIntegerProperty(schema.mag_id, venue.ids.mag ? parseInt(venue.ids.mag, 10) : undefined),
-                setStringProperty(schema.works_api_url, venue.works_api_url),
-                setDateProperty(schema.updated_date, venue.updated_date),
-            ] },
+            data: {
+                entryWith: { entryKey },
+                set: [
+                    setStringProperty(schema.issn_l, venue.issn_l),
+                    setIntegerProperty(schema.works_count, venue.works_count),
+                    setIntegerProperty(schema.cited_by_count, venue.cited_by_count),
+                    {
+                        propertyKey: schema.issn,
+                        facts: venue.issn.map((value) => ({ valueExpression: `"${value}"` })),
+                    },
+                    // Counts by year would require creating a separate VenueCountsByYear Entry Type
+                    setIntegerProperty(schema.mag_id, venue.ids.mag ? parseInt(venue.ids.mag, 10) : undefined),
+                    setStringProperty(schema.works_api_url, venue.works_api_url),
+                    setDateProperty(schema.updated_date, venue.updated_date),
+                ],
+            },
         },
     ];
 

@@ -21,8 +21,9 @@ export function exists(path: string) {
 
 /** Given a URL like "https://openalex.org/C2778407487", return the ID like "C2778407487" */
 export const getIdFromUrl = (url: string) => url.split("/").pop()!;
-export const getIdFromUrlIfSet = (url: string|undefined) => url ? url.split("/").pop()! : url;
-export const getWikipediaIdFromUrl = (url: string|undefined) => url ? url.split("/").pop()!.replaceAll("%20", "_") : undefined;
+export const getIdFromUrlIfSet = (url: string | undefined) => url ? url.split("/").pop()! : url;
+export const getWikipediaIdFromUrl = (url: string | undefined) =>
+    url ? url.split("/").pop()!.replaceAll("%20", "_") : undefined;
 
 export const setStringProperty = (propertyKey: string, value: string | undefined) => ({
     propertyKey,

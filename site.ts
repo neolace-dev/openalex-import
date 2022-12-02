@@ -49,13 +49,13 @@ export const siteData: Partial<Parameters<typeof UpdateSite>[0]> = {
     `,
     frontendConfig: {
         headerLinks: [
-            {text: "Home", href: "/"},
+            { text: "Home", href: "/" },
         ],
         integrations: {
-            plausibleAnalytics: {enabled: false},
+            plausibleAnalytics: { enabled: false },
         },
         features: {
-            hoverPreview: {enabled: true},
+            hoverPreview: { enabled: true },
         },
         plugins: {
             // Search indexing is currently too slow to support the use of TypeSense search on the huge OpenAlex data sets.

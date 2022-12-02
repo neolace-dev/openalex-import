@@ -17,7 +17,9 @@ export async function getApiClient(): Promise<api.NeolaceApiClient> {
     return _apiClientPromise = (async () => {
         const apiEndpoint = Deno.env.get("NEOLACE_API_ENDPOINT") ?? "http://local.neolace.net:5554";
         if (!apiEndpoint.startsWith("http")) {
-            console.error("You must set NEOLACE_API_ENDPOINT to a valid http:// or https:// URL for the Neolace realm.");
+            console.error(
+                "You must set NEOLACE_API_ENDPOINT to a valid http:// or https:// URL for the Neolace realm.",
+            );
             Deno.exit(1);
         }
         const apiKey = Deno.env.get("NEOLACE_API_KEY") ?? "SYS_KEY_INSECURE_DEV_KEY";
@@ -26,7 +28,7 @@ export async function getApiClient(): Promise<api.NeolaceApiClient> {
             basePath: apiEndpoint,
             fetchApi: fetch,
             authToken: apiKey,
-            siteKey: 'openalex',
+            siteKey: "openalex",
         });
 
         try {
