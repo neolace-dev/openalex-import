@@ -1,31 +1,38 @@
 entryTypes:
   - key: concept
     name: Concept
-    description: An OpenAlex Concept
+    description: Topics used to organize works
     keyPrefix: C
     color: emerald
     abbreviation: C
     enabledFeatures: {}
   - key: institution
     name: Institution
-    description: An OpenAlex Institution
+    description: A university or other organization that is affiliated with works (via authors)
     keyPrefix: I
     color: blue
     abbreviation: I
     enabledFeatures: {}
   - key: author
     name: Author
-    description: An OpenAlex Author
+    description: A person who creates works
     keyPrefix: A
     color: yellow
     abbreviation: A
     enabledFeatures: {}
   - key: venue
     name: Venue
-    description: An OpenAlex Venue
+    description: A journal or repository that hosts works
     keyPrefix: V
     color: red
     abbreviation: V
+    enabledFeatures: {}
+  - key: work
+    name: Work
+    description: A scholarly work (papers, books, datasets, etc.)
+    keyPrefix: W
+    color: ""
+    abbreviation: W
     enabledFeatures: {}
 properties:
 
