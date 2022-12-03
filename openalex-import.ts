@@ -128,9 +128,10 @@ async function import_entities<EntityData>(
         `There are a total of ${filesToProcess.length} files to process containing ${totalEntitiesToImport} entities.`,
     );
     const startTime = performance.now();
+    let entitiesImported = 0;
     for (const file of filesToProcess) {
         const path = `data/${entity_string}/updated_date=${file.date}/${file.fileName}`;
-        console.log(`Processing entries in file at path ${path}`);
+        console.log(`Processing ${entity_string} in ${path} (${ (entitiesImported/totalEntitiesToImport*100).toFixed(2) }%)`);
         const fileHandle = await Deno.open(path);
 
         const stream = (
@@ -150,6 +151,7 @@ async function import_entities<EntityData>(
             unprocessed = lines.pop() ?? ""; // The last line may be incomplete because the stream splits the file into random chunks.
             for (const line of lines) {
                 await importLine(line);
+                entitiesImported++;
             }
         }
         if (unprocessed) {
