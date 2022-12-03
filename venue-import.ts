@@ -1,24 +1,31 @@
 import { api } from "./neolace-api-client.ts";
 import { schema } from "./schema.ts";
-import { getIdFromUrl, getIdFromUrlIfSet, setDateProperty, setIntegerProperty, setStringListProperty, setStringProperty } from "./utils.ts";
+import {
+    getIdFromUrl,
+    getIdFromUrlIfSet,
+    setDateProperty,
+    setIntegerProperty,
+    setStringListProperty,
+    setStringProperty,
+} from "./utils.ts";
 
 export interface DehydratedVenue {
     "id"?: string; // null value is known issue for alternate host venues in authors
-    "issn_l": string|null;
-    "issn": string[]|null;
+    "issn_l": string | null;
+    "issn": string[] | null;
     "display_name": string;
     "publisher": string;
 }
 
 export interface Venue extends DehydratedVenue {
     "id": string;
-    "abbreviated_title": string|null;
+    "abbreviated_title": string | null;
     "alternate_titles": string[];
-    "homepage_url": string|null;
+    "homepage_url": string | null;
     "works_count": number;
     "cited_by_count": number;
-    "is_oa": boolean|null;
-    "is_in_doaj": boolean|null;
+    "is_oa": boolean | null;
+    "is_in_doaj": boolean | null;
     // "homepage_url": string;
     "ids": {
         "openalex": string;

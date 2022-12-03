@@ -1,6 +1,6 @@
 #!/usr/bin/env deno run --allow-net --allow-read --allow-write --allow-env
-// deno-lint-ignore-file no-unused-vars
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
+import { parse } from "std/flags/mod.ts";
 import { dirname } from "std/path/mod.ts";
 import { importConcept } from "./concept-import.ts";
 import { importInstitution } from "./institutions-import.ts";
@@ -9,7 +9,7 @@ import { importVenue } from "./venue-import.ts";
 import { importWork } from "./works-import.ts";
 
 import { api, getApiClient } from "./neolace-api-client.ts";
-import { exists, getIdFromUrlIfSet, promiseState } from "./utils.ts";
+import { exists, getIdFromUrl, getIdFromUrlIfSet, promiseState } from "./utils.ts";
 
 const s3client = new S3Client({
     endPoint: "s3.amazonaws.com",
@@ -38,27 +38,31 @@ async function download_things(entityType: string) {
 async function import_entities<EntityData>(
     entity_string: string,
     entity_import: (json_object: EntityData) => api.AnyBulkEdit[],
+    /** The last date that was already imported; only process files after this date. */
+    lastDate: string,
     condition?: (data: EntityData) => boolean,
 ) {
-    // TODO: this should use the manifest files so that older files which have been deleted on the server can be ignored.
-    // See https://docs.openalex.org/download-snapshot/snapshot-data-format#the-manifest-file
     // TODO: this should use the merged_ids to delete merged entries
     // See https://docs.openalex.org/download-snapshot/snapshot-data-format#merged-entities
-    console.log("Scanning files...");
-    const all_dates = Array.from(
-        Deno.readDirSync(`data/${entity_string}`),
-    ).filter(
-        (e) => e.name.startsWith("updated_date"),
-    ).map((e) => e.name).toSorted();
+    console.log(`Reading ${entity_string} manifest...`);
 
-    const all_files: string[] = [];
-    all_dates.forEach((date) => {
-        all_files.push(
-            ...Array.from(Deno.readDirSync(`data/${entity_string}/${date}`)).filter(
-                (e) => e.name.endsWith(".gz"),
-            ).map((e) => `data/${entity_string}/${date}/${e.name}`),
-        );
-    });
+    const manifest = JSON.parse(await Deno.readTextFile(`data/${entity_string}/manifest`));
+
+    const filesToProcess: { date: string; fileName: string; numEntities: number }[] = [];
+
+    for (const entry of manifest.entries) {
+        const prefix = `s3://openalex/data/${entity_string}/updated_date=`;
+        if (!entry.url.startsWith(prefix)) throw new Error(`Unexpected URL: ${entry.url}`);
+        const [date, fileName] = entry.url.slice(prefix.length).split("/");
+        const numEntities = entry.meta.record_count;
+        if (date <= lastDate) {
+            // console.log(`Skipping ${numEntities} entities from already processed file ${date}/${fileName}`);
+            continue;
+        }
+        filesToProcess.push({ date, fileName, numEntities });
+    }
+    /** The total number of entities we haven't yet imported. */
+    const totalEntitiesToImport = filesToProcess.reduce((n, e) => n + e.numEntities, 0);
 
     const client = await getApiClient();
     let pendingEdits: api.AnyBulkEdit[] = [];
@@ -76,6 +80,7 @@ async function import_entities<EntityData>(
         }
     };
 
+    /** This function will parse and queue the import of a single line from one of the files */
     const importLine = async (line: string) => {
         if (line.trim() === "") {
             return;
@@ -109,26 +114,28 @@ async function import_entities<EntityData>(
             // console.log(JSON.stringify(pendingEdits[0], undefined, 2));
             await pushEdits();
         }
-    }
+    };
 
-    console.log(`There are a total of ${all_files.length} files to process.`);
+    console.log(
+        `There are a total of ${filesToProcess.length} files to process containing ${totalEntitiesToImport} entities.`,
+    );
     const startTime = performance.now();
-    console.time("overall");
-    for (const path of all_files) {
+    for (const file of filesToProcess) {
+        const path = `data/${entity_string}/updated_date=${file.date}/${file.fileName}`;
         console.log(`Processing entries in file at path ${path}`);
         const fileHandle = await Deno.open(path);
 
         const stream = (
             fileHandle.readable
-            .pipeThrough(new DecompressionStream("gzip"))
-            .pipeThrough(new TextDecoderStream())
+                .pipeThrough(new DecompressionStream("gzip"))
+                .pipeThrough(new TextDecoderStream())
         );
         const reader = stream.getReader();
 
         let unprocessed = "";
         while (true) {
             // Read a chunk of the file:
-            const {done, value} = await reader.read();
+            const { done, value } = await reader.read();
             if (done) break;
             const toProcess = unprocessed + value;
             const lines = toProcess.split("\n");
@@ -150,19 +157,50 @@ async function import_entities<EntityData>(
 
 // Note: see the release notes at https://github.com/ourresearch/openalex-guts/blob/main/files-for-datadumps/standard-format/RELEASE_NOTES.txt
 
-// await download_things('concepts');
-// await download_things('institutions');
-// await download_things('venues');
-// await download_things("authors");
+const flags = parse(Deno.args, {
+    boolean: ["download"],
+    string: ["last-date"],
+    default: { download: true, "last-date": "2022-01-01" },
+});
 
-// await import_entities("concepts", importConcept);
-// await import_entities("institutions", importInstitution);
-// await import_entities("venues", importVenue);
-
-// Import authors associated to UBC
+const entities = flags._;
+const validEntities = ["all", "concepts", "institutions", "venues", "authors", "works"];
+if (!entities.every((e) => validEntities.includes(e as string))) throw new Error("Invalid Entity");
+const doAllEntities = entities.includes("all");
 const ubcInstitiutionId = "I141945490";
-await import_entities(
-    "authors",
-    importAuthor,
-    (author) => getIdFromUrlIfSet(author.last_known_institution?.id) === ubcInstitiutionId,
-);
+
+if (flags.download) {
+    for (const entityType of validEntities.slice(1)) {
+        if (entities.includes(entityType) || doAllEntities) {
+            await download_things(entityType);
+        }
+    }
+}
+
+if (entities.includes("concepts") || doAllEntities) {
+    await import_entities("concepts", importConcept, flags["last-date"]);
+}
+if (entities.includes("institutions") || doAllEntities) {
+    await import_entities("institutions", importInstitution, flags["last-date"]);
+}
+if (entities.includes("venues") || doAllEntities) {
+    await import_entities("venues", importVenue, flags["last-date"]);
+}
+if (entities.includes("authors") || doAllEntities) {
+    await import_entities(
+        "authors",
+        importAuthor,
+        flags["last-date"], // Import authors associated with UBC
+        (author) => getIdFromUrlIfSet(author.last_known_institution?.id) === ubcInstitiutionId,
+    );
+}
+if (entities.includes("works") || doAllEntities) {
+    await import_entities(
+        "works",
+        importWork,
+        flags["last-date"], // Import works from authors associated with UBC
+        (work) =>
+            work.authorships.find((a) => a.institutions.find((i) => getIdFromUrl(i.id) === ubcInstitiutionId)) !==
+                undefined,
+    );
+}

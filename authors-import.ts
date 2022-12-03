@@ -13,7 +13,7 @@ import {
 
 export interface DehydratedAuthor {
     "id": string;
-    "orcid": string|null;
+    "orcid": string | null;
     "display_name": string;
 }
 
