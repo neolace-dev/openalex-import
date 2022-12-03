@@ -131,7 +131,9 @@ async function import_entities<EntityData>(
     let entitiesImported = 0;
     for (const file of filesToProcess) {
         const path = `data/${entity_string}/updated_date=${file.date}/${file.fileName}`;
-        console.log(`Processing ${entity_string} in ${path} (${ (entitiesImported/totalEntitiesToImport*100).toFixed(2) }%)`);
+        console.log(
+            `Processing ${entity_string} in ${path} (${(entitiesImported / totalEntitiesToImport * 100).toFixed(2)}%)`,
+        );
         const fileHandle = await Deno.open(path);
 
         const stream = (
@@ -200,7 +202,8 @@ if (entities.includes("authors") || doAllEntities) {
     await import_entities(
         "authors",
         importAuthor,
-        flags["last-date"], // Import authors associated with UBC
+        flags["last-date"],
+        // Import authors associated with UBC:
         (author) => getIdFromUrlIfSet(author.last_known_institution?.id) === ubcInstitiutionId,
     );
 }
@@ -208,7 +211,8 @@ if (entities.includes("works") || doAllEntities) {
     await import_entities(
         "works",
         importWork,
-        flags["last-date"], // Import works from authors associated with UBC
+        flags["last-date"],
+        // Import works from authors associated with UBC:
         (work) =>
             work.authorships.find((a) => a.institutions.find((i) => getIdFromUrl(i.id) === ubcInstitiutionId)) !==
                 undefined,
