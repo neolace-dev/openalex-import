@@ -17,9 +17,11 @@ export const schema = {
     doi: "doi",
     pmid: "pmid",
     pmcid: "pmc-id",
+    twitter: "twitter-handle",
     // Other properties:
     abbreviated_title: "abbreviated-title",
     alternate_titles: "alternate-titles",
+    display_name_alternatives: "display-name-alternatives",
     homepage_url: "homepage-url",
     level: "level",
     works_count: "works-count",

@@ -7,17 +7,18 @@ import {
     getWikipediaIdFromUrl,
     setDateProperty,
     setIntegerProperty,
+    setStringListProperty,
     setStringProperty,
 } from "./utils.ts";
 
 export interface DehydratedAuthor {
     "id": string;
-    "orcid"?: string;
+    "orcid": string|null;
     "display_name": string;
 }
 
 export interface Author extends DehydratedAuthor {
-    "display_name_alternatives"?: string[]; // TODO add
+    "display_name_alternatives": string[];
     "works_count": number;
     "cited_by_count": number;
     "ids": {
@@ -60,8 +61,12 @@ export function importAuthor(author: Author): api.AnyBulkEdit[] {
             data: {
                 entryWith: { entryKey },
                 set: [
+                    // Other names:
+                    setStringListProperty(schema.display_name_alternatives, author.display_name_alternatives),
                     // ORCID:
-                    setStringProperty(schema.orcid, getIdFromUrlIfSet(author.orcid)),
+                    setStringProperty(schema.orcid, getIdFromUrlIfSet(author.orcid ?? undefined)),
+                    // Twitter:
+                    setStringProperty(schema.twitter, author.ids.twitter),
                     // Works count
                     setIntegerProperty(schema.works_count, author.works_count),
                     // Cited by count
@@ -73,7 +78,7 @@ export function importAuthor(author: Author): api.AnyBulkEdit[] {
                     // Scopus Author ID, e.g. "http://www.scopus.com/inward/authorDetails.url?authorID=36455008000&partnerID=MN8TOARS"
                     setStringProperty(
                         schema.scopus_id,
-                        author.ids.scopus ? new URL("author.ids.scopus").searchParams.get("authorID")! : undefined,
+                        author.ids.scopus ? new URL(author.ids.scopus).searchParams.get("authorID")! : undefined,
                     ),
                     //  set the updated date
                     setDateProperty(schema.updated_date, author.updated_date),
@@ -90,9 +95,7 @@ export function importAuthor(author: Author): api.AnyBulkEdit[] {
             code: "UpsertEntryByKey",
             data: {
                 where: { entryTypeKey: schema.institution, entryKey: institutionKey },
-                setOnCreate: {
-                    name: author.last_known_institution.display_name,
-                },
+                setOnCreate: { name: author.last_known_institution.display_name },
             },
         });
         // Then link it to this author:

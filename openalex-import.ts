@@ -2,7 +2,6 @@
 // deno-lint-ignore-file no-unused-vars
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
 import { dirname } from "std/path/mod.ts";
-import { gunzip } from "https://deno.land/x/compress@v0.4.1/mod.ts";
 import { importConcept } from "./concept-import.ts";
 import { importInstitution } from "./institutions-import.ts";
 import { importAuthor } from "./authors-import.ts";
@@ -10,7 +9,7 @@ import { importVenue } from "./venue-import.ts";
 import { importWork } from "./works-import.ts";
 
 import { api, getApiClient } from "./neolace-api-client.ts";
-import { exists, promiseState } from "./utils.ts";
+import { exists, getIdFromUrlIfSet, promiseState } from "./utils.ts";
 
 const s3client = new S3Client({
     endPoint: "s3.amazonaws.com",
@@ -25,7 +24,9 @@ async function download_things(entityType: string) {
     for await (const obj of s3client.listObjects({ prefix: `data/${entityType}/` })) {
         const local_path = obj.key;
         Deno.mkdirSync(dirname(local_path), { recursive: true });
-        if (exists(local_path)) {
+        // We always need the latest manifest file:
+        const forceOverwrite: boolean = obj.key.endsWith("manifest");
+        if (exists(local_path) && !forceOverwrite) {
             continue;
         }
         console.log(`Downloading ${local_path}`);
@@ -75,49 +76,70 @@ async function import_entities<EntityData>(
         }
     };
 
+    const importLine = async (line: string) => {
+        if (line.trim() === "") {
+            return;
+        }
+        let json_entity;
+        try {
+            json_entity = JSON.parse(line);
+        } catch {
+            try {
+                // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
+                json_entity = JSON.parse(line.replaceAll(`\\\\`, `\\`));
+            } catch (err) {
+                console.error(`JSON line could not be parsed:\n`, line);
+                throw err;
+            }
+        }
+        // console.log(json_entity);
+        const doImport = condition === undefined || condition(json_entity);
+        if (doImport) {
+            try {
+                pendingEdits.push(...entity_import(json_entity));
+            } catch (err) {
+                console.error(`A ${entity_string} entity could not be parsed:\n`, line);
+                throw err;
+            }
+        }
+        // Note: depending on the entity type, you can adjust this limit between 100 and 500
+        // to balance import speed vs. the risk of getting an error for the transaction needing
+        // too much memory.
+        if (pendingEdits.length > 100) {
+            // console.log(JSON.stringify(pendingEdits[0], undefined, 2));
+            await pushEdits();
+        }
+    }
+
     console.log(`There are a total of ${all_files.length} files to process.`);
     const startTime = performance.now();
     console.time("overall");
     for (const path of all_files) {
         console.log(`Processing entries in file at path ${path}`);
-        const curr_obj = await Deno.readFile(path);
-        const curr_file = gunzip(curr_obj);
-        const curr_string = new TextDecoder().decode(curr_file);
-        const lines = curr_string.split("\n");
+        const fileHandle = await Deno.open(path);
 
-        for (const line of lines) {
-            if (line.trim() == "") {
-                continue;
+        const stream = (
+            fileHandle.readable
+            .pipeThrough(new DecompressionStream("gzip"))
+            .pipeThrough(new TextDecoderStream())
+        );
+        const reader = stream.getReader();
+
+        let unprocessed = "";
+        while (true) {
+            // Read a chunk of the file:
+            const {done, value} = await reader.read();
+            if (done) break;
+            const toProcess = unprocessed + value;
+            const lines = toProcess.split("\n");
+            unprocessed = lines.pop() ?? ""; // The last line may be incomplete because the stream splits the file into random chunks.
+            for (const line of lines) {
+                await importLine(line);
             }
-            let json_entity;
-            try {
-                json_entity = JSON.parse(line);
-            } catch {
-                try {
-                    // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
-                    json_entity = JSON.parse(line.replaceAll(`\\\\`, `\\`));
-                } catch (err) {
-                    console.error(`JSON entity could not be parsed:\n`, line);
-                    throw err;
-                }
-            }
-            // console.log(json_entity);
-            const doImport = condition === undefined || condition(json_entity);
-            if (doImport) {
-                try {
-                    pendingEdits.push(...entity_import(json_entity));
-                } catch (err) {
-                    console.error(`A ${entity_string} entity could not be parsed:\n`, line);
-                    throw err;
-                }
-            }
-            // Note: depending on the entity type, you can adjust this limit between 100 and 500
-            // to balance import speed vs. the risk of getting an error for the transaction needing
-            // too much memory.
-            if (pendingEdits.length > 100) {
-                // console.log(JSON.stringify(pendingEdits[0], undefined, 2));
-                await pushEdits();
-            }
+        }
+        if (unprocessed) {
+            const line = unprocessed;
+            await importLine(line);
         }
     }
     await pushEdits();
@@ -131,46 +153,16 @@ async function import_entities<EntityData>(
 // await download_things('concepts');
 // await download_things('institutions');
 // await download_things('venues');
-
-// const country = "CA";
-// await import_entities(
-//   "institutions",
-//   importInstitutionToTheDatabase,
-//   (institution) => {
-//     return institution.country_code == country;
-//   }
-// )
-
-//  import authors associated to Canadian Institutions
-// await import_entities(
-//   "authors",
-//   importAuthorToTheDatabase,
-//   (author) => {
-//     if (author.last_known_institution) {
-//       if (author.last_known_institution.country_code == "CA") {
-//         return true;
-//       }
-//     }
-//     return false;
-//   }
-// )
+// await download_things("authors");
 
 // await import_entities("concepts", importConcept);
 // await import_entities("institutions", importInstitution);
-await import_entities("venues", importVenue);
+// await import_entities("venues", importVenue);
 
-//  import authors associated to Canadian Institutions
-// await import_entities(
-//   "authors",
-//   importAuthorToTheDatabase,
-//   (_author) => {
-//     const author = _author as any as Author;
-//     if (author.last_known_institution) {
-//       if (author.last_known_institution.country_code == "CA") {
-//         return true;
-//       }
-//     }
-//     return false;
-//   }
-// )
-// There are a total of 29.
+// Import authors associated to UBC
+const ubcInstitiutionId = "I141945490";
+await import_entities(
+    "authors",
+    importAuthor,
+    (author) => getIdFromUrlIfSet(author.last_known_institution?.id) === ubcInstitiutionId,
+);

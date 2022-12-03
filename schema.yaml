@@ -103,6 +103,7 @@ properties:
       - entryTypeKey: author
       - entryTypeKey: venue
       - entryTypeKey: work
+    displayAs: "{value}"  # Display as a string with no commas in it
   - key: wikipedia-id
     name: Wikipedia ID
     description: The concept's Wikipedia page URL.
@@ -116,12 +117,22 @@ properties:
     displayAs: "[{value}](https://en.wikipedia.org/wiki/{value})"
   - key: scopus-id
     name: SCOPUS ID
-    description: The concept's SCOPUS page URL.
+    description: The author's SCOPUS ID.
     type: VALUE
     mode: REC
     rank: 5
     appliesTo:
       - entryTypeKey: author
+    displayAs: "[{value}](http://www.scopus.com/inward/authorDetails.url?authorID={value}&partnerID=MN8TOARS)"
+  - key: twitter-handle
+    name: Twitter handle
+    description: The author's twitter handle
+    type: VALUE
+    mode: REC
+    rank: 10
+    appliesTo:
+      - entryTypeKey: author
+    displayAs: "[@{value}](https://twitter.com/{value})"
   - key: updated-date
     name: Updated date
     description: The last time anything in this entity changed. This date is updated for any change at all, including increases in various counts.
@@ -381,6 +392,14 @@ properties:
     appliesTo:
       - entryTypeKey: institution
     valueConstraint: x.entryType() = entryType("institution")
+  - key: display-name-alternatives
+    name: Also displayed as
+    description: Other ways that we've found this author's name displayed.
+    type: VALUE
+    mode: REC
+    rank: 10
+    appliesTo:
+      - entryTypeKey: author
   - key: last-known-institution
     name: Last known institution
     description: Last known associated instituion.
