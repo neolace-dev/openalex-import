@@ -76,7 +76,15 @@ async function import_entities<EntityData>(
             const newEditsToPush = [...pendingEdits];
             console.log("Submitting", newEditsToPush.length, "edits...");
             pendingEdits = [];
-            lastPromise = client.pushBulkEdits(newEditsToPush, { connectionId: "openalex", createConnection: true });
+            lastPromise = client.pushBulkEdits(newEditsToPush, { connectionId: "openalex", createConnection: true })
+                .catch((err) => {
+                    Deno.writeTextFileSync(
+                        "failed-edits.json",
+                        newEditsToPush.map((e) => JSON.stringify(e, undefined, 2)).join("\n\n"),
+                    );
+                    console.log("Failed edits were written to failed-edits.json");
+                    throw err;
+                });
         }
     };
 
