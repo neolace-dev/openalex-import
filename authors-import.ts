@@ -14,7 +14,7 @@ import {
 export interface DehydratedAuthor {
     "id": string;
     "orcid": string | null;
-    "display_name": string;
+    "display_name": string | null; // some authors like A4213628610 have a null name!!
 }
 
 export interface Author extends DehydratedAuthor {
@@ -25,7 +25,7 @@ export interface Author extends DehydratedAuthor {
         "openalex": string;
         "orcid"?: string;
         "mag"?: string;
-        "twitter"?: string; // TODO: ADD
+        "twitter"?: string;
         "wikipedia"?: string;
         "scopus"?: string;
     };
@@ -52,7 +52,7 @@ export function importAuthor(author: Author): api.AnyBulkEdit[] {
             data: {
                 where: { entryKey, entryTypeKey },
                 set: {
-                    name: author.display_name,
+                    name: author.display_name ?? "Unknown Author",
                 },
             },
         },
