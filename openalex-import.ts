@@ -170,9 +170,9 @@ async function import_entities<EntityData>(
 // Note: see the release notes at https://github.com/ourresearch/openalex-guts/blob/main/files-for-datadumps/standard-format/RELEASE_NOTES.txt
 
 const flags = parse(Deno.args, {
-    boolean: ["download"],
+    boolean: ["download", "import"],
     string: ["last-date"],
-    default: { download: true, "last-date": "2022-01-01" },
+    default: { download: true, import: true, "last-date": "2022-01-01" },
 });
 
 const entities = flags._;
@@ -187,34 +187,37 @@ if (flags.download) {
             await download_things(entityType);
         }
     }
+    await download_things("merged_ids");
 }
 
-if (entities.includes("concepts") || doAllEntities) {
-    await import_entities("concepts", importConcept, flags["last-date"]);
-}
-if (entities.includes("institutions") || doAllEntities) {
-    await import_entities("institutions", importInstitution, flags["last-date"]);
-}
-if (entities.includes("venues") || doAllEntities) {
-    await import_entities("venues", importVenue, flags["last-date"]);
-}
-if (entities.includes("authors") || doAllEntities) {
-    await import_entities(
-        "authors",
-        importAuthor,
-        flags["last-date"],
-        // Import authors associated with UBC:
-        (author) => getIdFromUrlIfSet(author.last_known_institution?.id) === ubcInstitiutionId,
-    );
-}
-if (entities.includes("works") || doAllEntities) {
-    await import_entities(
-        "works",
-        importWork,
-        flags["last-date"],
-        // Import works from authors associated with UBC:
-        (work) =>
-            work.authorships.find((a) => a.institutions.find((i) => getIdFromUrl(i.id) === ubcInstitiutionId)) !==
-                undefined,
-    );
+if (flags.download) {
+    if (entities.includes("concepts") || doAllEntities) {
+        await import_entities("concepts", importConcept, flags["last-date"]);
+    }
+    if (entities.includes("institutions") || doAllEntities) {
+        await import_entities("institutions", importInstitution, flags["last-date"]);
+    }
+    if (entities.includes("venues") || doAllEntities) {
+        await import_entities("venues", importVenue, flags["last-date"]);
+    }
+    if (entities.includes("authors") || doAllEntities) {
+        await import_entities(
+            "authors",
+            importAuthor,
+            flags["last-date"],
+            // Import authors associated with UBC:
+            (author) => getIdFromUrlIfSet(author.last_known_institution?.id) === ubcInstitiutionId,
+        );
+    }
+    if (entities.includes("works") || doAllEntities) {
+        await import_entities(
+            "works",
+            importWork,
+            flags["last-date"],
+            // Import works from authors associated with UBC:
+            (work) =>
+                work.authorships.find((a) => a.institutions.find((i) => getIdFromUrl(i.id) === ubcInstitiutionId)) !==
+                    undefined,
+        );
+    }
 }
