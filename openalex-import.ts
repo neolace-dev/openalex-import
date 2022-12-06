@@ -221,3 +221,5 @@ if (flags.download) {
         );
     }
 }
+
+// TODO: Merge entities

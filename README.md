@@ -26,3 +26,12 @@ If you need to reset it:
 ```
 ../../neolace-app/neolace-api/neolace-admin.ts erase-content openalex --skip-prompt-and-dangerously-delete
 ```
+
+
+## Prod site instructions
+
+```
+source .../environments/prod/neolace-admin.sh
+./openalex-import.ts concepts
+./openalex-import.ts institutions
+```
