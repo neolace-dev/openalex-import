@@ -1,4 +1,5 @@
 #!/usr/bin/env deno run --allow-net --allow-read --allow-write --allow-env
+import { TextLineStream } from "https://deno.land/std@0.167.0/streams/text_line_stream.ts";
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.2.0/mod.ts";
 import { parse } from "std/flags/mod.ts";
 import { dirname } from "std/path/mod.ts";
@@ -140,25 +141,16 @@ async function import_entities<EntityData>(
             fileHandle.readable
                 .pipeThrough(new DecompressionStream("gzip"))
                 .pipeThrough(new TextDecoderStream())
+                .pipeThrough(new TextLineStream())
         );
         const reader = stream.getReader();
 
-        let unprocessed = "";
         while (true) {
             // Read a chunk of the file:
             const { done, value } = await reader.read();
             if (done) break;
-            const toProcess = unprocessed + value;
-            const lines = toProcess.split("\n");
-            unprocessed = lines.pop() ?? ""; // The last line may be incomplete because the stream splits the file into random chunks.
-            for (const line of lines) {
-                await importLine(line);
-                entitiesImported++;
-            }
-        }
-        if (unprocessed) {
-            const line = unprocessed;
-            await importLine(line);
+            await importLine(value);
+            entitiesImported++;
         }
     }
     await pushEdits();
