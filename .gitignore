@@ -1,3 +1,4 @@
 data/*
 deno_bug
 deno.lock
+failed-edits.json

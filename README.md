@@ -30,6 +30,8 @@ If you need to reset it:
 
 ## Prod site instructions
 
+First, create site and import schema as seen above. Then:
+
 ```
 source .../environments/prod/neolace-admin.sh
 ./openalex-import.ts concepts
