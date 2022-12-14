@@ -163,6 +163,7 @@ async function import_entities<EntityData>(
 
 const flags = parse(Deno.args, {
     boolean: ["download", "import"],
+    negatable: ["download", "import"],
     string: ["last-date"],
     default: { download: true, import: true, "last-date": "2022-01-01" },
 });
@@ -182,7 +183,7 @@ if (flags.download) {
     await download_things("merged_ids");
 }
 
-if (flags.download) {
+if (flags.import) {
     if (entities.includes("concepts") || doAllEntities) {
         await import_entities("concepts", importConcept, flags["last-date"]);
     }
