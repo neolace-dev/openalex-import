@@ -21,7 +21,13 @@ const s3client = new S3Client({
     pathStyle: false,
 });
 
-async function download_things(entityType: string) {
+/**
+ * Download the latest manifest and data files for the specified entitiy, e.g. "concepts"
+ *
+ * If the data files already exist locally, no new data files will be downloaded.
+ * The manifest is always updated to the latest version in any case.
+ */
+async function downloadEntityDataFiles(entityType: string) {
     for await (const obj of s3client.listObjects({ prefix: `data/${entityType}/` })) {
         const local_path = obj.key;
         Deno.mkdirSync(dirname(local_path), { recursive: true });
@@ -36,23 +42,28 @@ async function download_things(entityType: string) {
     }
 }
 
-async function import_entities<EntityData>(
-    entity_string: string,
-    entity_import: (json_object: EntityData) => api.AnyBulkEdit[],
-    /** The last date that was already imported; only process files after this date. */
+/**
+ * Read the downloaded manifest file for the given entityType (e.g. "concepts")
+ * and return the list of all the data files that we need to process.
+ *
+ * If lastDate is specified, only data files *newer* than 'lastDate' are
+ * returned. So if 'lastDate' is the last time this import process ran
+ * successfully, this will only return new data files, if there are any.
+ * You can use that to only apply new changes as they are published,
+ * rather than going over the whole data set again.
+ */
+async function getFilesFromManifest(
+    entityType: string,
     lastDate: string,
-    condition?: (data: EntityData) => boolean,
-) {
-    // TODO: this should use the merged_ids to delete merged entries
-    // See https://docs.openalex.org/download-snapshot/snapshot-data-format#merged-entities
-    console.log(`Reading ${entity_string} manifest...`);
+): Promise<{ date: string; fileName: string; numEntities: number }[]> {
+    console.log(`Reading ${entityType} manifest...`);
 
-    const manifest = JSON.parse(await Deno.readTextFile(`data/${entity_string}/manifest`));
+    const manifest = JSON.parse(await Deno.readTextFile(`data/${entityType}/manifest`));
 
     const filesToProcess: { date: string; fileName: string; numEntities: number }[] = [];
 
     for (const entry of manifest.entries) {
-        const prefix = `s3://openalex/data/${entity_string}/updated_date=`;
+        const prefix = `s3://openalex/data/${entityType}/updated_date=`;
         if (!entry.url.startsWith(prefix)) throw new Error(`Unexpected URL: ${entry.url}`);
         const [date, fileName] = entry.url.slice(prefix.length).split("/");
         const numEntities = entry.meta.record_count;
@@ -62,68 +73,81 @@ async function import_entities<EntityData>(
         }
         filesToProcess.push({ date, fileName, numEntities });
     }
-    /** The total number of entities we haven't yet imported. */
-    const totalEntitiesToImport = filesToProcess.reduce((n, e) => n + e.numEntities, 0);
+    return filesToProcess;
+}
 
-    const client = await getApiClient();
-    let pendingEdits: api.AnyBulkEdit[] = [];
-    let lastPromise: Promise<unknown> | undefined = undefined;
-    const pushEdits = async () => {
-        if (lastPromise && (await promiseState(lastPromise)).status === "pending") {
+/**
+ * A class that can be used to push a bunch of "bulk edits" to a Neolace server.
+ * However, it first checks if the last batch of edits completed yet or not.
+ * If they haven't yet completed, it waits for them first before submitting the
+ * next edits.
+ */
+class EditPusher {
+    lastPromise: Promise<unknown> | undefined = undefined;
+
+    constructor(private readonly client: api.NeolaceApiClient) {}
+
+    /**
+     * Push some edits. This function will block until the *previous* set of edits is done,
+     * but it otherwise fullfills immediately and doesn't wait for this new batch of edits
+     * to complete, so that we can continue reading and processing data while that happens.
+     */
+    async submitEdits(edits: api.AnyBulkEdit[]) {
+        if (this.lastPromise && (await promiseState(this.lastPromise)).status === "pending") {
             console.log("Waiting for last bulk edit to complete...");
-            await lastPromise;
+            await this.lastPromise;
         }
-        if (pendingEdits.length > 0) {
-            const newEditsToPush = [...pendingEdits];
-            console.log("Submitting", newEditsToPush.length, "edits...");
-            pendingEdits = [];
-            lastPromise = client.pushBulkEdits(newEditsToPush, { connectionId: "openalex", createConnection: true })
+        if (edits.length > 0) {
+            console.log("Submitting", edits.length, "edits...");
+            this.lastPromise = this.client.pushBulkEdits(edits, { connectionId: "openalex", createConnection: true })
                 .catch((err) => {
                     Deno.writeTextFileSync(
                         "failed-edits.json",
-                        newEditsToPush.map((e) => JSON.stringify(e, undefined, 2)).join("\n\n"),
+                        edits.map((e) => JSON.stringify(e, undefined, 2)).join("\n\n"),
                     );
                     console.log("Failed edits were written to failed-edits.json");
                     throw err;
                 });
         }
-    };
+    }
+}
 
-    /** This function will parse and queue the import of a single line from one of the files */
-    const importLine = async (line: string) => {
-        if (line.trim() === "") {
-            return;
-        }
-        let json_entity;
+/**
+ * Parse a single line (representing an OpenAlex entity) as JSON,
+ * dealing with some known encoding quirks.
+ */
+function parseLine(line: string) {
+    try {
+        return JSON.parse(line);
+    } catch {
         try {
-            json_entity = JSON.parse(line);
-        } catch {
-            try {
-                // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
-                json_entity = JSON.parse(line.replaceAll(`\\\\`, `\\`));
-            } catch (err) {
-                console.error(`JSON line could not be parsed:\n`, line);
-                throw err;
-            }
+            // Work around a known escaping issue: https://groups.google.com/g/openalex-users/c/JuC50PvvpGY
+            return JSON.parse(line.replaceAll(`\\\\`, `\\`));
+        } catch (err) {
+            console.error(`JSON line could not be parsed:\n`, line);
+            throw err;
         }
-        // console.log(json_entity);
-        const doImport = condition === undefined || condition(json_entity);
-        if (doImport) {
-            try {
-                pendingEdits.push(...entity_import(json_entity));
-            } catch (err) {
-                console.error(`A ${entity_string} entity could not be parsed:\n`, line);
-                throw err;
-            }
-        }
-        // Note: depending on the entity type, you can adjust this limit between 100 and 500
-        // to balance import speed vs. the risk of getting an error for the transaction needing
-        // too much memory.
-        if (pendingEdits.length > 100) {
-            // console.log(JSON.stringify(pendingEdits[0], undefined, 2));
-            await pushEdits();
-        }
-    };
+    }
+}
+
+async function import_entities<EntityData>(
+    entityType: string,
+    entity_import: (json_object: EntityData) => api.AnyBulkEdit[],
+    /** The last date that was already imported; only process files after this date. */
+    lastDate: string,
+    condition?: (data: EntityData) => boolean,
+) {
+    // TODO: this should use the merged_ids to delete merged entries
+    // See https://docs.openalex.org/download-snapshot/snapshot-data-format#merged-entities
+
+    /** Read the manifest file to get the list of data files we need to process */
+    const filesToProcess = await getFilesFromManifest(entityType, lastDate);
+
+    /** The total number of entities we haven't yet imported. */
+    const totalEntitiesToImport = filesToProcess.reduce((n, e) => n + e.numEntities, 0);
+
+    let pendingEdits: api.AnyBulkEdit[] = [];
+    const editPusher = new EditPusher(await getApiClient())
 
     console.log(
         `There are a total of ${filesToProcess.length} files to process containing ${totalEntitiesToImport} entities.`,
@@ -131,9 +155,9 @@ async function import_entities<EntityData>(
     const startTime = performance.now();
     let entitiesImported = 0;
     for (const file of filesToProcess) {
-        const path = `data/${entity_string}/updated_date=${file.date}/${file.fileName}`;
+        const path = `data/${entityType}/updated_date=${file.date}/${file.fileName}`;
         console.log(
-            `Processing ${entity_string} in ${path} (${(entitiesImported / totalEntitiesToImport * 100).toFixed(2)}%)`,
+            `Processing ${entityType} in ${path} (${(entitiesImported / totalEntitiesToImport * 100).toFixed(2)}%)`,
         );
         const fileHandle = await Deno.open(path);
 
@@ -147,14 +171,36 @@ async function import_entities<EntityData>(
 
         while (true) {
             // Read a chunk of the file:
-            const { done, value } = await reader.read();
+            const { done, value: line } = await reader.read();
             if (done) break;
-            await importLine(value);
+            if (line.trim() === "") continue;
+
+            // Parse and import it:
+            const jsonEntity = parseLine(line);
+            try {
+                const shouldImport = condition === undefined || condition(jsonEntity);
+                if (shouldImport) {
+                    pendingEdits.push(...entity_import(jsonEntity));
+                }
+            } catch (err) {
+                console.error(`A ${entityType} entity could not be parsed:\n`, line);
+                throw err;
+            }
+            // Note: depending on the entity type, you can adjust this limit between 100 and 500
+            // to balance import speed vs. the risk of getting an error for the transaction needing
+            // too much memory.
+            if (pendingEdits.length > 100) {
+                // console.log(JSON.stringify(pendingEdits[0], undefined, 2));
+                await editPusher.submitEdits(pendingEdits);
+                pendingEdits = [];
+            }
             entitiesImported++;
         }
     }
-    await pushEdits();
-    await lastPromise;
+    if (pendingEdits.length > 0) {
+        await editPusher.submitEdits(pendingEdits);
+        pendingEdits = [];
+    }
     const totalTimeMs = performance.now() - startTime;
     console.log("Took: ", Math.round(totalTimeMs / 1_000), "s");
 }
@@ -176,10 +222,10 @@ const ubcInstitiutionId = "I141945490";
 if (flags.download) {
     for (const entityType of validEntities.slice(1)) {
         if (entities.includes(entityType) || doAllEntities) {
-            await download_things(entityType);
+            await downloadEntityDataFiles(entityType);
         }
     }
-    await download_things("merged_ids");
+    await downloadEntityDataFiles("merged_ids");
 }
 
 if (flags.download) {
