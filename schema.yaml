@@ -27,6 +27,13 @@ entryTypes:
     color: red
     abbreviation: V
     enabledFeatures: {}
+  - key: host-venue
+    name: Host Venue
+    description: A journal or repository that hosts a particular work
+    keyPrefix: V
+    color: red
+    abbreviation: V
+    enabledFeatures: {}
   - key: work
     name: Work
     description: A scholarly work (papers, books, datasets, etc.)
@@ -35,8 +42,14 @@ entryTypes:
     abbreviation: W
     enabledFeatures: {}
 properties:
-
 #  NON-RELATIONSHIPS
+  - key: url
+    name: URL
+    description: URL
+    type: VALUE
+    mode: OPT
+    appliesTo:
+      - entryTypeKey: host-venue
   - key: openalex-id
     name: OpenAlex ID
     description: The Unique permanent ID for this entity assigned by OpenAlex.
@@ -419,12 +432,12 @@ properties:
       - entryTypeKey: institution
     valueConstraint: x.entryType() = entryType("author")
     default: 'this.reverse(prop=prop("last-known-institution"))'
-  # - key: host-venue
-  #   name: Host venue
-  #   description: A HostVenue object describing how and where this work is being hosted online.
-  #   type: RELATES_TO
-  #   mode: REC
-  #   rank: 0
-  #   appliesTo:
-  #     - entryTypeKey: work
-  #   valueConstraint: x.entryType() = entryType("venue")
+  - key: has-host-venue
+    name: Host venue
+    description: A HostVenue object describing how and where this work is being hosted online.
+    type: RELATES_TO
+    mode: REC
+    rank: 0
+    appliesTo:
+      - entryTypeKey: work
+    valueConstraint: x.entryType() = entryType("host-venue")

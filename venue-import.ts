@@ -10,7 +10,7 @@ import {
 } from "./utils.ts";
 
 export interface DehydratedVenue {
-    "id"?: string; // null value is known issue for alternate host venues in authors
+    "id": string; // null value is known issue for alternate host venues in authors
     "issn_l": string | null;
     "issn": string[] | null;
     "display_name": string;

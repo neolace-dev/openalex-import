@@ -30,6 +30,11 @@ export const setStringProperty = (propertyKey: string, value: string | undefined
     facts: value === undefined ? [] : [{ valueExpression: `"${value}"` }],
 });
 
+export const setBooleanProperty = (propertyKey: string, value: boolean | undefined) => ({
+    propertyKey,
+    facts: value === undefined ? [] : [{ valueExpression: `${value ? "true" : "false"}`}],
+});
+
 export const setStringListProperty = (propertyKey: string, value: string[] | undefined) => ({
     propertyKey,
     facts: Array.isArray(value) ? value.map((v) => ({ valueExpression: `"${v}"` })) : [],

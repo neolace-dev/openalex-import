@@ -4,6 +4,7 @@ export const schema = {
     institution: "institution",
     author: "author",
     venue: "venue",
+    work: "work",
     // External ID Properties:
     wikidata: "wikidata-id",
     mag_id: "mag-id",
@@ -39,6 +40,7 @@ export const schema = {
     oa_url: "oa-url",
     is_retracted: "is-retracted",
     is_paratext: "is-paratext",
+    url: "url",
     // Relationship properties:
     // ancestors: ?,
     // descendants: ?,
@@ -52,4 +54,5 @@ export const schema = {
     parent_institutions: "parent-institutions",
     //child_institutions: don't use - automatically computed
     related_institutions: "related-institutions",
+    has_host_venue: "has-host-venue",
 };
