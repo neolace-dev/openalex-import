@@ -23,16 +23,24 @@ const s3client = new S3Client({
 
 async function download_things(entityType: string) {
     for await (const obj of s3client.listObjects({ prefix: `data/${entityType}/` })) {
-        const local_path = obj.key;
-        Deno.mkdirSync(dirname(local_path), { recursive: true });
+        const localFilePath = obj.key;
+        Deno.mkdirSync(dirname(localFilePath), { recursive: true });
         // We always need the latest manifest file:
         const forceOverwrite: boolean = obj.key.endsWith("manifest");
-        if (exists(local_path) && !forceOverwrite) {
+        if (exists(localFilePath) && !forceOverwrite) {
             continue;
         }
-        console.log(`Downloading ${local_path}`);
-        const curr_obj = await s3client.getObject(obj.key);
-        await Deno.writeFile(local_path, new Uint8Array(await curr_obj.arrayBuffer()));
+        console.log(`Downloading ${localFilePath}`);
+        const objDataResponse = await s3client.getObject(obj.key);
+        if (obj.size < 10_000_000) {
+            await Deno.writeFile(localFilePath, new Uint8Array(await objDataResponse.arrayBuffer()));
+        } else {
+            // This file is too big to write from memory. Stream it chunk by chunk to a temporary file:
+            const tempFilePath = `${localFilePath}.tmp`;
+            const tempFileHandle = await Deno.open(tempFilePath, { write: true, create: true, truncate: true });
+            await objDataResponse.body!.pipeTo(tempFileHandle.writable);
+            await Deno.rename(tempFilePath, localFilePath);
+        }
     }
 }
 
