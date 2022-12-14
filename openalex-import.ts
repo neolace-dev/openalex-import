@@ -115,14 +115,14 @@ async function import_entities<EntityData>(
             }
         }
         // console.log(json_entity);
-        const doImport = condition === undefined || condition(json_entity);
-        if (doImport) {
-            try {
+        try {
+            const shouldImport = condition === undefined || condition(json_entity);
+            if (shouldImport) {
                 pendingEdits.push(...entity_import(json_entity));
-            } catch (err) {
-                console.error(`A ${entity_string} entity could not be parsed:\n`, line);
-                throw err;
             }
+        } catch (err) {
+            console.error(`A ${entity_string} entity could not be parsed:\n`, line);
+            throw err;
         }
         // Note: depending on the entity type, you can adjust this limit between 100 and 500
         // to balance import speed vs. the risk of getting an error for the transaction needing
@@ -217,7 +217,7 @@ if (flags.import) {
             flags["last-date"],
             // Import works from authors associated with UBC:
             (work) =>
-                work.authorships.find((a) => a.institutions.find((i) => getIdFromUrl(i.id) === ubcInstitiutionId)) !==
+                work.authorships.find((a) => a.institutions.find((i) => i.id && getIdFromUrl(i.id) === ubcInstitiutionId)) !==
                     undefined,
         );
     }
