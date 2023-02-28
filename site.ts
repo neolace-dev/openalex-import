@@ -32,11 +32,11 @@ export const siteData: Partial<Parameters<typeof UpdateSite>[0]> = {
 
         ## Explore
 
-        Here is a graph of concepts related to { entry("C26405456") }. Click to de-select and then click on any concept in the graph to see details or get a link to its page.
+        Here is a graph of concepts related to { entry("C172790937") }.
 
-        { entry("C26405456").andRelated(depth=1).andAncestors().graph() }
+        { entry("C172790937").andAncestors().graph() }
 
-        Here are some institutions related to { entry("I114027177") }:
+        Here are some institutions related to { entry("I114027177") }. Use the first toolbar button to expand the view:
 
         { entry("I114027177").andRelated(depth=2).graph() }
     `,
